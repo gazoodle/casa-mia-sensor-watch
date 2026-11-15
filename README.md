@@ -10,9 +10,9 @@
 
 Tell it once what normal looks like, for every sensor in the house, and it tells you only when something isn't: what needs doing, or has gone wrong, before the family notices.
 
-> **Maturity: Beta.** Complete and used every day; its features have settled. Please report what breaks in your setup. ([The levels](https://github.com/gazoodle/casa-mia/blob/2026.11.7/docs/README.md#maturity))
+> **Maturity: Beta.** Complete and used every day; its features have settled. Please report what breaks in your setup. ([The levels](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/README.md#maturity))
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.7/docs/screenshots/sensor-watch-card.webp" alt="A Home Assistant dashboard view named Sensor Watch. On the left the Sensor Watch card lists what needs attention, worst first: an error (Boiler fault, problem reported), a warning (Hall smoke alarm battery, battery flat, 4%) and four tasks (three updates available, and a front door sensor battery to replace at 17%), each with its level as a coloured pill, its message, its value and how long it has stood. On the right four Sensor Watch gauges, each an arc of its watch's coloured bands with a needle: mains voltage 241 V, nominal; hot water 46.8 °C, nominal; the hall smoke alarm at 4%, warning, battery flat; and the landing smoke alarm at 88%, nominal" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.8/docs/screenshots/sensor-watch-card.webp" alt="A Home Assistant dashboard view named Sensor Watch. On the left the Sensor Watch card lists what needs attention, worst first: an error (Boiler fault, problem reported), a warning (Hall smoke alarm battery, battery flat, 4%) and four tasks (three updates available, and a front door sensor battery to replace at 17%), each with its level as a coloured pill, its message, its value and how long it has stood. On the right four Sensor Watch gauges, each an arc of its watch's coloured bands with a needle: mains voltage 241 V, nominal; hot water 46.8 °C, nominal; the hall smoke alarm at 4%, warning, battery flat; and the landing smoke alarm at 88%, nominal" width="800">
 
 ## What it's for
 
@@ -35,9 +35,9 @@ action always say what's wrong, so you choose what happens next:
 
 - **Tell someone:** a notification when anything becomes a task, a warning to the phone
   of whoever's home, critical to everyone. The **Notify on Sensor Watch** blueprint does
-  this in a few clicks ([The event](https://github.com/gazoodle/casa-mia/blob/2026.11.7/docs/applets/sensor-watch.md#the-event)).
+  this in a few clicks ([The event](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/applets/sensor-watch.md#the-event)).
 - **Show it:** a panel of what needs attention on the wall tablets. Pair it with
-  [garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.7/docs/tablet-layout.md#showing-and-hiding), so the panel's heading
+  [garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/tablet-layout.md#showing-and-hiding), so the panel's heading
   disappears with it on a quiet day, rather than a proud *WARNINGS* over nothing.
 - **Look into it:** hand the list to an AI agent (Home Assistant's AI tasks, say) to
   investigate what has gone wrong and why, before you even reach for the laptop.
@@ -46,10 +46,10 @@ action always say what's wrong, so you choose what happens next:
   filter due) added to a Home Assistant to-do list, and ticked off by itself when the
   sensor is nominal again.
 - **Escalate:** a warning nobody has dealt with in a day becomes a text, through
-  [Phone and SMS](https://github.com/gazoodle/casa-mia/blob/2026.11.7/docs/applets/phone-and-sms.md), which works even when the internet doesn't.
+  [Phone and SMS](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/applets/phone-and-sms.md), which works even when the internet doesn't.
 - **Say it with a light:** the hallway lamp glows amber while anything is a warning.
 - **Put it over everything:** a critical comes up on every wall tablet, over whatever
-  it's showing, with the [Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.7/docs/over-layer.md).
+  it's showing, with the [Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/over-layer.md).
 - **Brief the morning:** the voice assistant reads out the day's tasks at breakfast.
 - **Watch the trends:** the counts are measurements, so Home Assistant's own history
   shows which integration falls over most often, and when.
@@ -85,14 +85,14 @@ Sensor Watch needs Home Assistant 2026.3.0 or later.
 2. Download Sensor Watch there, then restart Home Assistant.
 3. In Settings → Devices & services, choose Add integration and pick Sensor Watch.
 
-The [guide](https://github.com/gazoodle/casa-mia/blob/2026.11.7/docs/applets/sensor-watch.md) covers setting it up and everything it does.
+The [guide](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/applets/sensor-watch.md) covers setting it up and everything it does.
 
 ## Part of Casa Mia
 
 Sensor Watch is part of [Casa Mia](https://github.com/gazoodle/casa-mia), where it is written and
-released. This repository is generated from Casa Mia 2026.11.7 (commit `cd152d50c4`) and
+released. This repository is generated from Casa Mia 2026.11.8 (commit `a23317266f`) and
 isn't edited by hand, so [issues](https://github.com/gazoodle/casa-mia/issues) and changes go to Casa Mia.
 
 The Casa Mia app installs this same integration itself. A house with both needs to do
-nothing about it: [With HACS or the Marketplace](https://github.com/gazoodle/casa-mia/blob/2026.11.7/docs/applets/sensor-watch.md#with-hacs-or-the-marketplace)
+nothing about it: [With HACS or the Marketplace](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/applets/sensor-watch.md#with-hacs-or-the-marketplace)
 says what happens.
