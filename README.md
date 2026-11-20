@@ -10,9 +10,9 @@
 
 Tell it once what normal looks like, for every sensor in the house, and it tells you only when something isn't: what needs doing, or has gone wrong, before the family notices.
 
-> **Maturity: Beta.** Complete and used every day; its features have settled. Please report what breaks in your setup. ([The levels](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/README.md#maturity))
+> **Maturity: Beta.** Complete and used every day; its features have settled. Please report what breaks in your setup. ([The levels](https://github.com/gazoodle/casa-mia/blob/2026.11.9/docs/README.md#maturity))
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.8/docs/screenshots/sensor-watch-card.webp" alt="A Home Assistant dashboard view named Sensor Watch. On the left the Sensor Watch card lists what needs attention, worst first: an error (Boiler fault, problem reported), a warning (Hall smoke alarm battery, battery flat, 4%) and four tasks (three updates available, and a front door sensor battery to replace at 17%), each with its level as a coloured pill, its message, its value and how long it has stood. On the right four Sensor Watch gauges, each an arc of its watch's coloured bands with a needle: mains voltage 241 V, nominal; hot water 46.8 °C, nominal; the hall smoke alarm at 4%, warning, battery flat; and the landing smoke alarm at 88%, nominal" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-card.webp" alt="A Home Assistant dashboard view named Sensor Watch. On the left the Sensor Watch card lists what needs attention, worst first: an error (Boiler fault, problem reported), a warning (Hall smoke alarm battery, battery flat, 4%) and four tasks (three updates available, and a front door sensor battery to replace at 17%), each with its level as a coloured pill, its message, its value and how long it has stood. On the right four Sensor Watch gauges, each an arc of its watch's coloured bands with a needle: mains voltage 241 V, nominal; hot water 46.8 °C, nominal; the hall smoke alarm at 4%, warning, battery flat; and the landing smoke alarm at 88%, nominal" width="800">
 
 ## What it's for
 
@@ -35,9 +35,9 @@ action always say what's wrong, so you choose what happens next:
 
 - **Tell someone:** a notification when anything becomes a task, a warning to the phone
   of whoever's home, critical to everyone. The **Notify on Sensor Watch** blueprint does
-  this in a few clicks ([The event](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/applets/sensor-watch.md#the-event)).
+  this in a few clicks ([The event](#the-event)).
 - **Show it:** a panel of what needs attention on the wall tablets. Pair it with
-  [garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/tablet-layout.md#showing-and-hiding), so the panel's heading
+  [garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.9/docs/tablet-layout.md#showing-and-hiding), so the panel's heading
   disappears with it on a quiet day, rather than a proud *WARNINGS* over nothing.
 - **Look into it:** hand the list to an AI agent (Home Assistant's AI tasks, say) to
   investigate what has gone wrong and why, before you even reach for the laptop.
@@ -46,10 +46,10 @@ action always say what's wrong, so you choose what happens next:
   filter due) added to a Home Assistant to-do list, and ticked off by itself when the
   sensor is nominal again.
 - **Escalate:** a warning nobody has dealt with in a day becomes a text, through
-  [Phone and SMS](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/applets/phone-and-sms.md), which works even when the internet doesn't.
+  [Phone and SMS](https://github.com/gazoodle/casa-mia/blob/2026.11.9/docs/applets/phone-and-sms.md), which works even when the internet doesn't.
 - **Say it with a light:** the hallway lamp glows amber while anything is a warning.
 - **Put it over everything:** a critical comes up on every wall tablet, over whatever
-  it's showing, with the [Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/over-layer.md).
+  it's showing, with the [Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.9/docs/over-layer.md).
 - **Brief the morning:** the voice assistant reads out the day's tasks at breakfast.
 - **Watch the trends:** the counts are measurements, so Home Assistant's own history
   shows which integration falls over most often, and when.
@@ -70,8 +70,6 @@ of a broken integration or a flat battery. It counts only once it has been unava
 five minutes (yours to change), as a restart, a reload or a car asleep is usual, not
 trouble.
 
-[salt-sentry]: https://www.tindie.com/products/ErikLemcke/salt-sentry-water-softener-monitor/
-
 ## Installing
 
 The Downloads badge at the top is GitHub's count of downloads of the releases' packages. Every
@@ -85,14 +83,972 @@ Sensor Watch needs Home Assistant 2026.3.0 or later.
 2. Download Sensor Watch there, then restart Home Assistant.
 3. In Settings → Devices & services, choose Add integration and pick Sensor Watch.
 
-The [guide](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/applets/sensor-watch.md) covers setting it up and everything it does.
+## How it works
+
+```mermaid
+flowchart TD
+    change["A watched sensor changes<br>(its state, or the attribute you chose)"]
+    silent["A sensor sends nothing, or nothing new,<br>for its Stale time"]
+    level["Its level is worked out from its bands:<br>its own, its group's or a profile's"]
+    compare{"Against the level<br>it has now"}
+    hold["Hold-off: it must stay that way<br>(1 minute; 5 minutes for unavailable)"]
+    blip["Nothing happens"]
+    counts(["The new level counts"])
+    escalate["Escalation: left at that level for<br>the time you set, it moves up one"]
+    subgraph out["Where the new level goes"]
+        shown["Shown: the page, the card, the gauge,<br>the eye in an entity's dialog"]
+        entities["The status, count and problem entities,<br>and the List action"]
+        event["The event and the device triggers:<br>your automations, the Notify blueprint"]
+    end
+
+    change --> level --> compare
+    compare -- "the same" --> blip
+    compare -- "better" --> counts
+    compare -- "worse" --> hold
+    hold -- "still so" --> counts
+    hold -- "back as it was" --> blip
+    silent -- "at once" --> counts
+    counts --> escalate
+    escalate -- "time's up" --> counts
+    counts --> shown
+    counts --> entities
+    counts --> event
+```
+
+- **Better news counts at once; worse news waits.** A level that gets worse has to last
+  for its hold-off before it counts, so a blip raises nothing. A sensor that recovers is
+  shown as recovered straight away.
+- **Unavailable waits longer:** five minutes unless you change it.
+- **Stale** is for a sensor that still has a value but has stopped sending: no report,
+  or no change, for the time you set.
+- **Escalation** moves a level up one when nobody has dealt with it in the time you set:
+  a task becomes a warning, a warning an error.
+- Every change of level goes to all of the outputs together, so the card on the wall,
+  the count in an automation and the notification on a phone never disagree.
+
+The waits and levels are set per watch, or once for a group or a profile: see
+[Watch an entity](#watch-an-entity), [Profiles](#profiles) and [Groups](#groups).
+
+## Half an hour to a watched house
+
+1. **Groups for the big classes of thing.** Every Shelly plug's voltage, every leak
+   sensor, every battery, every Hue light, every window: a group is a saved filter and a
+   profile (or built-in levels, by what each thing is). Everything matching is watched now,
+   and whatever matches later joins by itself, so the plug you put in next month is
+   watched without you remembering. The rule of thumb: **more than two of the same kind
+   is a group; a single thing is a watch.**
+2. **Check the bands.** A group follows a profile, and the library has 86 to start from,
+   each saying where its numbers come from: mains voltage and frequency by country,
+   inverter trip limits, batteries, broadband, pool and hot tub chemistry, indoor air,
+   freezers, heating, the garden, computers, and plain "is it there?".
+3. **Watches for the one-offs:** the freezer, the softener's salt, the boiler pressure,
+   with bands suggested from each one's own history.
+4. **One automation,** from the **Notify on Sensor Watch** blueprint: your phone, at the
+   level you choose or worse, in each watch's own words.
+
+**Set up…** on the page takes you through these steps in order: see [Set up](#set-up).
+
+That's plant-level monitoring and signalling for the whole house, and the card on the
+wall tablet shows what needs attention, and nothing at all on a quiet day.
+
+## Why not Home Assistant's own features?
+
+You could, and for one thing you should: a single freezer only needs a threshold helper.
+Sensor Watch is for when there are fifty of them.
+
+**Say it once, not fifty times.** Home Assistant often makes you repeat yourself: a
+threshold helper per sensor, an alert per entity, an automation per device, the same
+"unavailable" check copied for every bulb and switch. Sensor Watch lets you say it once:
+what a leak sensor means is set for every leak sensor, a profile says "UK mains" once for
+every plug that follows it, a group takes in every plug there will ever be, and the Home
+Assistant checks cover every integration.
+
+**Finding them is half the battle.** The pieces exist, but they're scattered, and most
+people never come across them:
+
+| What you want | What already exists | Where it stops |
+|---|---|---|
+| A value outside a range | The [Threshold](https://www.home-assistant.io/integrations/threshold) helper | One sensor and one range each, on or off: no levels, nothing suggested, nothing in bulk. |
+| Nagging until it's dealt with | The [Alert](https://www.home-assistant.io/integrations/alert/) integration | YAML only, an alert per entity. |
+| Low batteries | Sbyx's [low battery blueprint](https://community.home-assistant.io/t/258664); [Battery Notes](https://codechimp.org/HA-Battery-Notes/) | Batteries only (both are excellent at that). |
+| Missing or unavailable entities in your config | [Watchman](https://github.com/dummylabs/thewatchman); [Spook](https://spook.boo) | Your configuration, on demand, rather than live states. |
+| Integrations that failed to set up | **Failed to set up** on Settings → Devices & services, and some Repairs | Seen only if you go and look. |
+| Showing only what needs attention | [auto-entities](https://github.com/thomasloven/lovelace-auto-entities), conditional cards | A display: it doesn't know what normal is. |
+
+**Point and click, not expert Home Assistant.** Doing all of this natively without
+repeating yourself is possible, but it takes expert skills: labelling every entity, then
+templates that read the labels (`label_entities`), loops with a `namespace` to pick out
+the ones in trouble, the `this` trick to count them, a second template for every extra
+level, and `for:` on every trigger so a blip doesn't count. Sensor Watch is mostly point
+and click: scan, tick, accept, and one automation on its event.
+
+If one of these is all you need, use it. Sensor Watch puts them in one place, configured
+once: levels (a task isn't a critical), normal suggested from history, what a sensor
+means known from its device class, a whole house scanned and filtered rather than one
+entity at a time, Home Assistant's own health in the same picture, and one event and one
+action to hang every automation on.
+
+**What it won't do: complex conditions.** Sensor Watch judges one entity (its state or one attribute) at a
+time, against its levels. It isn't trying to replace the freedom Home Assistant gives
+you to describe when something is wrong: "the freezer is above −15 °C *and* its door has
+been shut for ten minutes, unless it's defrosting" is a template's job, and it won't
+grow a language for that. Write the condition where Home Assistant already lets you
+(Settings → Devices & services → Helpers → **Template**), then watch the helper:
+
+- **A template binary sensor** (on when your condition holds): watch it, set **When on**
+  to the level you want and its message, and you're done. All the logic is yours; Sensor
+  Watch adds the level, the hold-off, the summary, the event and the card.
+- **A template sensor giving a number** (a difference, a ratio, a minutes-since): watch
+  it with bands, and range-check it like any other reading, history suggestions and all.
+
+## Better together
+
+Sensor Watch tells; the rest of Casa Mia shows, and only when there's something to show:
+
+- **The integration's summary sensors** (Status, Tasks, Warnings, Errors, Critical,
+  Problem) are what a dashboard keys on: a card's visibility, a badge, a colour. One
+  entity says whether anything needs attention, whatever the size of the house.
+- **[The Sensor Watch card](#the-card):** what needs looking at, worst first, with each
+  watch's message and its value live; hidden altogether when all is well.
+- **[Tablet Layout](https://github.com/gazoodle/casa-mia/blob/2026.11.9/docs/tablet-layout.md):** a panel on an edge of the wall tablet's screen
+  for what needs attention, sized to its cards, and hidden when they are.
+- **[Garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.9/docs/tablet-layout.md#showing-and-hiding):** the panel's heading is garnish,
+  so it never holds the panel open on its own. Things go wrong, the panel and its heading
+  appear; they're dealt with, and the panel goes, gap and all.
+- **[The Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.9/docs/over-layer.md):** a critical comes up over whatever the tablet is
+  showing, and goes when it's sorted.
+- **The Home tile** in the Casa Mia panel shows the house's health at a glance: the
+  worst level, the counts and the worst culprit.
+
+## Switching it on
+
+Sensor Watch is an integration of its own, called **Sensor Watch**. It runs inside Home
+Assistant and needs nothing else of Casa Mia's.
+
+1. The Casa Mia app installs it along with Casa Mia's other integrations. Restart Home
+   Assistant when the Repair asks.
+2. Add it under Settings → Devices & services → Add integration → **Sensor Watch**. It
+   asks you nothing. It then has a **Sensor Watch** device with its status, counts and
+   problem sensor.
+3. Open **Sensor Watch** in Home Assistant's sidebar and choose what to watch. The page is
+   for admins. The Sensor Watch tile on Casa Mia's home page opens it too.
+
+If Sensor Watch was switched on in the Casa Mia app before 2026.11.3, skip step 2. After
+the update and the restart, Casa Mia sets the integration up for you with the same
+device, entities, history and records. If it can't, a Repair says why and nothing is
+watched until it can; reload the Casa Mia integration to try again. The app's old copy of
+the records is left where it was.
+
+Sensor Watch keeps its records in Home Assistant's own storage, so they are in Home
+Assistant's backups.
+
+### With HACS or the Marketplace
+
+Sensor Watch is also published by itself, at
+[gazoodle/casa-mia-sensor-watch](https://github.com/gazoodle/casa-mia-sensor-watch), for a
+house without Casa Mia. Add that repository in HACS, or in Home Assistant's Marketplace
+(2026.11 and later), as a custom repository of the type Integration; its page says how. It
+is the same integration either way, so the two can meet in one house:
+
+- **Installed from a store first, Casa Mia added later.** The app takes over keeping
+  Sensor Watch up to date. If its copy is newer than the store's, it installs it and a
+  Repair asks for a restart. Your records, entities, history, automations and cards
+  carry on, and there is nothing for you to do.
+- **The store still offers an update.** A store goes by the version it installed
+  itself and doesn't see what the app wrote, so it offers a release the app has
+  already brought. Installing it writes the same files again and loses nothing.
+- **A store's version newer than the app's** is left alone, with a warning in the
+  app's log. The app installs its own again once that is the newer one.
+- **Remove in HACS deletes the integration's files,** even while Sensor Watch is set
+  up. If you remove it there while the Casa Mia app is installed, Sensor Watch stops
+  at the next restart of Home Assistant, until the app starts again and puts the
+  files back. The Marketplace refuses to remove it while it is set up.
+
+## Worked examples
+
+### Every mains plug, a panel and a phone call
+
+Twenty Shelly plugs all measure the mains, so watch them as one.
+
+1. **Profiles → From the library…**, search "UK mains" (or your country) and tick **UK mains voltage (current law)**.
+2. **Groups → + New group**: name it *Mains voltage*; filter by integration *Shelly*,
+   device class *voltage* and category *primary* (which leaves out an ESP board's own
+   VCC reading); their levels are *UK mains voltage (current law)*. The preview lists what matches:
+   anything that shouldn't be there, rule out with a minus word in the search
+   (`-vcc`).
+3. **The card:** add a Sensor Watch card to the wall tablet's dashboard with group
+   *Mains voltage*. It shows a plug in trouble, its message and its live value, and
+   hides when they're all fine.
+4. **The phone:** an automation from **Notify on Sensor Watch**: level *Critical*, group
+   *Mains voltage*, notify action your phone. "🚨 Plug 3 voltage: critical", "Mains far
+   too low (198 V) · Barn · Mains voltage".
+
+### Every light, there or not
+
+A bulb has nothing to go wrong but dropping off the network, and a breaker trip takes a
+dozen with it.
+
+1. **Profiles → From the library…**, tick **Available (a task after an hour)** under
+   Availability.
+2. **Groups → + New group**: *Lights*, domain *light* (or integration *Hue*), following
+   it. A lamp switched off at the wall is forgiven for an hour; after that it's a task.
+3. Trip a breaker, and an hour later the card lists every light it took with it. Lights
+   you've retired and want to stay gone: **Stays gone** turns it round.
+
+### A thermostat that isn't keeping up
+
+A thermostat's state is only its mode (heat, off, auto), which says nothing about whether
+the room is warm.
+
+1. **+ Watch an entity**, pick the thermostat, and in **Watch** choose its
+   `current_temperature`.
+2. Bands are suggested from its history; or **Levels from** *Room temperature (°C)* from the
+   library. A room under 16 °C is a task, under 12 °C a warning.
+
+### A hot tub: its reminders, its water and its errors
+
+A spa run by a Gecko controller (in.touch2) comes into Home Assistant through the
+[Gecko integration](https://github.com/gazoodle/gecko-home-assistant), and it keeps
+reminders of its own: **Rinse filter**, **Clean filter**, **Change water**, **Check spa**,
+**Change ozonator** and **Change Vision cartridge**, each a date entity saying when it's
+due. Sensor Watch reads a date as the days until it, so:
+
+1. **Groups → + New group**: *Spa reminders*, domain *date* (and the spa's device, or
+   a search for "due"), their levels are **built-in levels, by what each is**, which for a date
+   is **Reminder due (days)**: a task in the fortnight before, a warning in its week, an
+   error once it's passed, critical a month after. Or follow that profile from the
+   library, under Reminders and due dates.
+2. **The water:** watch the spa's water temperature (its temperature sensor, or the
+   thermostat's `current_temperature` attribute) with bands: say under 35 °C a task
+   ("Spa cooling: is it heating?") and under 30 °C a warning. A hold-off of half an hour
+   lets a lid left open off.
+3. **Its errors:** watch the spa's **Error(s)** sensor by exact states: *None* nominal,
+   anything else an error. The row and the notification show the spa's own words.
+
+With the Notify on Sensor Watch blueprint at *Task*, the phone says "Task: Rinse filter
+due" a fortnight out, and the card shows it until the filter is rinsed and the date set
+again (on the spa, or the date entity in Home Assistant). They're judged every ten minutes
+as time passes, so a reminder comes due without anything in Home Assistant changing.
+
+### The security light that stayed on
+
+**Security light on too long** (under Outdoors and garden) is a warning when the light
+has been on for half an hour: its sensor is stuck, someone left the switch on, or
+something keeps setting it off. Apply it to the lights with **Apply to…**, or make a
+group by label so new ones join. Change the hold-off to suit the light's own timer.
+
+### A fault only two sensors can show
+
+The supply into the house and a meter downstream both read voltage; if they differ by
+more than a few volts, something between them is wrong. Neither sensor alone can say
+so, so make the difference a template sensor (Settings → Devices & services → Helpers →
+Template → Sensor: `{{ (states('sensor.supply_voltage') | float(0) -
+states('sensor.barn_meter_voltage') | float(0)) | abs }}`), then watch it with bands:
+nominal under 3 V, a warning to 8 V, an error beyond.
+
+## On the page
+
+**How Sensor Watch works**, folded at the top, says what each part is for (levels, a
+watch, a profile, a group, how you hear) and where to start. It's open while nothing is
+watched, and stays as you last left it. With nothing watched, the list itself shows the
+three steps to start, with **Set up, step by step…**, **+ New group** and **Scan my house**.
+
+### Set up
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-setup.webp" alt="The set-up's first step, What's in your house: groups to tick for updates, battery levels, leak sensors, an integration's mains voltage (with the library's UK mains voltage profile), problem and smoke sensors, the alarm panel, covers and locks, each with how many it would watch and their levels" width="800">
+
+**Set up…**, beside Scan my house, goes through the first setting up in four steps. Any
+step can be skipped, it can be opened again at any time, and everything it makes is an
+ordinary group, profile or automation that you can change or delete afterwards.
+
+1. **What's in your house.** The kinds of thing you have that aren't watched yet and
+   that say what they mean (battery levels, leak sensors, smoke sensors, updates, covers,
+   locks: the **By what it is** table under [Watch an entity](#watch-an-entity)), each as
+   a group to tick. Each line says how many it would watch and the levels they would get.
+   An integration's mains voltage and frequency sensors (twenty plugs each measuring the
+   voltage) are offered as a group following the library's profile for the country set in
+   Home Assistant (Settings → System → General). With no country set, or one the library
+   has no mains profile for, they aren't offered, because the levels differ by country. A
+   voltage sensor that doesn't read like the mains at that moment (a 12 V battery's, from
+   the same integration) is left out of the group, and the line says how many were;
+   **Let them back** on the group takes them in. A kind that one of your groups already
+   covers isn't offered again.
+2. **One of a kind.** [Scan my house](#scan-my-house), for the things you have one of.
+3. **Telling you.** Choose a notify action and a level, and it makes an automation from
+   the **Notify on Sensor Watch** blueprint ([The event](#the-event)), named "Sensor
+   Watch: tell notify.…". It says when you already have automations from the blueprint,
+   since a second one for the same phone would tell you twice. With no notify actions in
+   Home Assistant yet (no phone with its app), it says how to get one.
+4. **Done.** What was made, with a way to open each, and how to add the cards to a
+   dashboard. Sensor Watch doesn't change your dashboards itself.
+
+### Watched sensors
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch.webp" alt="The Sensor Watch page: the watched sensors under one toolbar of search and filter chips, with Needs attention at the top (a boiler fault as an error, a smoke alarm's flat battery as a warning and three tasks), then the rest under a heading per group, each row with its status pill, value, message and levels" width="800">
+
+Every watched sensor, its level now (the **status pill** at the start of its row) and its
+value, with a search and filter **chips** along the top so a house with hundreds of them
+stays manageable. The chips for a level, an area, a group and a profile are always there;
+**More filters…** has the rest (such as floor, label, integration, maker, model, device,
+device class, category and kind), and one that is set stays out as a chip of its own. Click a row to
+edit its levels.
+**Grouped** (beside Sort) puts them under a heading per group, and Manual for those
+watched one by one; the sort applies within each. Grouped, the list starts with **Needs
+attention**: every sensor at a level other than nominal, whichever group it is in, so a
+problem in the last group isn't a screen or two down.
+
+**Stop watching** is in a sensor's editor, at the foot. Under the list, **Levels from…**
+gives the sensors shown a profile's levels, and while a filter is set **Stop watching
+these N** stops the ones it leaves. Without a filter the button is **Stop watching all**.
+Each asks first.
+
+**Disabled** in a watch's editor keeps it, with its levels and its group, but stops
+watching it: no level, no event, not counted. Disabled ones are listed together at the
+foot, greyed, each with an **Enable** chip that watches it again, back in its group
+(or untick Disabled in its editor). Handy for a sensor that's
+being repaired, or a screenshot.
+
+A pill showing **…** has no level yet: its entity was unavailable when Home Assistant
+started and is waiting out its time unavailable, or it's unavailable and set to Ignore. Its first
+real reading gives it a level at once. While any have none, the top of the page says how
+many ("2 with no level yet").
+
+**Refresh state** (top right) judges every watch afresh, as at Home Assistant's start:
+for when a level looks stuck. The
+same is the **Refresh state** button on the Sensor Watch device in Home Assistant, and the
+`casa_mia_sensor_watch.refresh` action for automations.
+
+The list is live: a value or level changes on the page the moment Home Assistant has it
+(the page holds a subscription, as a dashboard does). A worse level waits out its
+hold-off first, so set it to 0 while trying a sensor out.
+
+### Watch an entity
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-editor.webp" alt="Editing a hot water temperature watch: a month of hourly statistics drawn as a line over the coloured bands, Levels from set to Its own, and the bands as a ladder: Warning above 55, Nominal 41 to 55 °C, Warning below 41, with Move too: Bands above +1 and Everything +1 offered under Nominal after its top edge was raised" width="800">
+
+Any entity can be watched: a sensor, but also an `input_number` you type a reading into
+(a pool's pH from a test strip), a `number`, a `switch` that should stay on, a `select`.
+A **date** (a reminder's due date, a `date` entity, a timestamp sensor) is read as the days
+until it, negative once it's passed, so its bands are days (**A date: days until it**
+under the bands; a `date` entity starts that way, with Reminder due's bands). Sensor Watch
+judges date watches again every ten minutes, as a date comes due without its state
+changing.
+How it's watched follows its state: a number gets bands, `on` and `off` get on/off, and
+anything else exact states.
+
+Search for it by name, entity id or its device's name (every word, in any order; a
+word with a minus, `-vcc`, rules out what has it), or
+narrow the list by **domain**, **area**, **floor**, **label**, **integration**,
+**maker** and **model** (the device's: "every Shelly Plus Plug S", not "every voltage"),
+**device** (only those with entities matching the other filters, so choosing ESPHome
+lists only ESPHome devices), **device class**, **category** (primary, diagnostic or
+config: an ESP board's own VCC reading is usually diagnostic, so *primary* leaves it out)
+or kind (numeric, on/off, or states). Pick one, and Sensor
+Watch reads its history (30 days unless you choose otherwise) and suggests its bands:
+
+- **Numeric sensors:** the history's spread gives the nominal band, rounded outwards to a
+  tidy step, with a warning band either side and error beyond. Values far outside the
+  rest (more than three standard deviations from the mean) are set aside and listed: they
+  may be incidents worth a look, and the suggestion assumes they were. Setting the
+  bands yourself: below.
+- **On/off sensors:** two rows, **When off** and **When on**, each with its own level
+  and message, so it reads as it means: a leak sensor is Nominal when off and Critical
+  when on ("Leak detected"); a pump that should run is Nominal when on and an Error when
+  off ("Pump stopped"); or neither is nominal (a task when off, an error when on). From
+  history, the state it spends most of its time in is suggested as nominal and the
+  other as a warning.
+- **Exact states:** for a sensor whose state should be one exact thing rather than within
+  a range (an alarm number that should be `0`, a washing machine that should be `idle` or
+  `standby`), and for text and enum sensors, which have no range at all. List the
+  nominal states; anything else gets one level and a message. Numbers compare as numbers,
+  so `0` matches `0.0`. A numeric sensor offers **Bands (a range)** or **Exact states**;
+  the states it has spent most of its time in are shown (an enum's own states, for an
+  enum), to tick into the list.
+
+**The bands** are a ladder built out from **Nominal**, its window in the middle (either
+edge may be left empty for open: a battery is nominal from 30% up). Above it are the
+bands going up, each with only its far edge (*Warning up to 24*, *Error up to 26*, the
+last *Critical above 26*); below it are the same going down (*Warning down to 16*,
+*Critical below 16*). Each band starts where the one inside it ends, so no edge is typed
+twice and no value can fall between two bands. Each band out from nominal must be worse
+than the one inside it (the level menu offers only those), so each side holds at most
+four bands; for a wider band at the same level, move its edge instead. An edge belongs
+to the band above it. **+ Band above** and **+ Band below** add one at the far end, and
+✕ removes one. Change any level or message (what a task or a warning says, such as "Top
+up the salt") before saving. A message may be up to 255 characters, but past 80
+notifications and cards may cut it short (the page shows the count once you pass 80).
+When you move a nominal edge, the band beyond it grows or shrinks. Beside it the page
+offers to move **the bands above** (or below) by the same amount, keeping their widths,
+or **everything**, which shifts the whole ladder. Ignore the offer and the edge alone
+moves, so a fixed limit (frost at 0°) stays put. Saving is refused, with the reason
+under the bands, while an edge is missing or isn't a number (use a point for decimals),
+or while the edges are out of order. A record saved before the ladder that left a gap
+opens with the gap as a band at its **Not a number** level, so it behaves as before and
+the gap shows.
+
+**By what it is.** Some sensors say what they mean, so Sensor Watch sets them up by
+their kind and device class rather than their history (change anything you like):
+
+| What | Nominal | Otherwise |
+|---|---|---|
+| Leak, smoke, gas, carbon monoxide, safety | off | critical |
+| Problem | off | error |
+| Connectivity | on (connected) | error |
+| Tamper | off | warning |
+| Low battery (on/off) | off | task: Replace the battery |
+| Door, window, garage door, opening | closed | task |
+| Battery (%) | 20 and above | task below 20, warning below 5 |
+| Covers (windows, blinds, garage doors) | closed | task |
+| Locks | locked | task (unlocked); error when jammed |
+| Updates | none waiting | task: Update available |
+| Vacuums and mowers | docked, working, returning, paused | error |
+| Alarm panels | disarmed, armed, arming, pending | warning; critical when triggered |
+
+Leak, smoke, gas, carbon monoxide, safety and alarm panels have no hold-off: they count
+the moment they change. Everything else waits 60 seconds by default.
+
+Valves have no fixed meaning (a water main is usually open, a garden valve closed), so
+they go by their history. A scan takes the sensors with a meaning without reading any
+history, so they come through even when history can't be read.
+
+In **Exact states**, a state can also have a level and message of its own (**+ A state
+with its own level**): a lock is a task when unlocked but an error when jammed.
+
+**Available** watches only whether it's there, whatever its state, for anything with
+nothing else to go wrong (a bulb, a plug) or that something depends on: **When
+available** and **When unavailable**, each with a level and message. Unknown counts as
+there; gone from Home Assistant (renamed, its integration removed) counts as
+unavailable. It works either way round: set When available to a warning and When
+unavailable to nominal to hear if something retired comes back. Any entity can be
+watched this way, whatever its kind; a group following an Available profile covers
+every Hue light, new ones included. A long hold-off forgives a lamp switched off at
+the wall.
+
+**Watch** an attribute instead of the state, when the state doesn't say how it is: a
+thermostat's state is only its mode (heat, off, auto), so watch its
+`current_temperature` (bands: a room too cold or too hot) or `hvac_action`; a cover's
+`current_position` rather than open or closed. The choice lists the attributes that
+hold a number or a short word, with their values now, and the suggestion comes from
+that attribute's own history (state history, so 10 days by default). One watch per
+entity: its state or one attribute.
+
+Sensors with long-term statistics (most measurements) are read from them, which Home
+Assistant keeps for good. Others are read from their state history, which Home
+Assistant keeps for 10 days by default, so a 30-day ask may get less; the page says
+from when.
+
+Under the levels, **Over time** holds what depends on how long something has lasted.
+Each line reads as a sentence with its controls in it ("Unavailable for 5 min counts as
+Error"):
+
+- **Unavailable for … counts as:** a level, or **Ignore** to have no opinion while it is,
+  and how long it must be unavailable before that counts (5 minutes by default), so a
+  short absence doesn't raise the alarm.
+- **A worse level must last … before it counts:** the hold-off (60 seconds by default),
+  so a blip doesn't raise the alarm. A better level counts at once: a sensor
+  back from unavailable, or back in its band, is told the moment it is.
+- **No report (or change) for … counts as:** Stale, for a sensor that is still there but
+  has gone quiet (never, by default). Home Assistant goes on showing such a sensor's last
+  value, so its level would otherwise stay as it was. Choose from 5 minutes to 30 days, a
+  level (a warning unless you change it) and, if you like, a message; without one it says
+  "no report for 6 h".
+  - **No report** counts any update from the sensor, even of the same value: right for a
+    battery sensor that reports on a schedule. **No change** is for a value that ought to
+    move (a temperature, a power reading): the same value sent again doesn't count.
+  - It counts only when it is worse than the level the sensor's last reading gives: a
+    sensor already at an error isn't brought down to a warning for going quiet.
+  - It ends the moment the sensor reports (or changes) again, and its level is then the
+    one its reading gives. An unavailable sensor isn't stale: the first line covers it.
+  - The hold-off doesn't apply: the wait is the time you chose.
+  - Each sensor is looked at when its own time is up. Sensor Watch doesn't go round
+    them all on a timer.
+  - **After a restart of Home Assistant** every sensor looks as if it had just reported,
+    so the time starts again then. A sensor that went quiet before the restart is found
+    one full wait after it, and its message says "no report since Home Assistant
+    started", because how long it has really been quiet isn't known.
+  - A profile can carry it, so a group of battery sensors gets it in one go.
+- **Left at … for … it shows as:** escalation. A level left standing moves up. For each of Task, Warning and Error, how
+  long it may stand before it shows the next one up (never, by default). Each rung is
+  timed from reaching it: salt that has needed topping up for a week becomes a warning,
+  and with a week on Warning too, an error a week after that. Back to a better level
+  starts again; worse on its own starts the ladder from its new level, without what's
+  shown dropping. The page says "escalated from Task (7 days ago)", the notification
+  ends "a task for 7 days", and the event carries `escalated` and `real` (the level its
+  reading gives). It's worked out from when the level began, so a restart doesn't reset
+  it. Several of the library's profiles come with one (the salt, batteries, boiler
+  pressure, pool and hot tub water, disk space).
+
+Folded under **More** are the settings changed least:
+
+- **Not a number** (bands only): the level of a state that isn't a number (an error by default).
+- **Accuracy** (bands only): how far the meter may be out, as a percentage (of each edge)
+  or an amount in its unit (±0.5 °C). A reading that close to an edge might be either
+  side of it, so the level holds: a worse one counts only once the reading is past the
+  edge by the accuracy, and a better one as soon as it's back inside the real edge. A
+  mains plug reading 253.4 V against the 253 V limit stays nominal at ±1 %, and a
+  reading sitting on a line doesn't flap. The edges stay the standard's own numbers. The
+  library's mains voltage profiles come with ±1 %; leave it empty for none.
+- **Name** and **Disabled**, for a sensor's own watch.
+
+Unavailable for and the hold-off are timed from when the entity changed, as Home Assistant's own dialogs show it
+("Last changed"), so a level's "since" on the page is the moment it began, not the
+moment its wait ended. An availability watch has no Unavailable for: its hold-off is
+the wait.
+
+### Profiles
+
+A profile is a set of levels said once for many sensors: twenty plugs on the same mains
+want the same bands (critical below 207 V, a warning below 216 V), not twenty slightly
+different suggestions. Make one in the **Profiles** section with **+ New profile** (a
+name, then its bands, on/off or exact states), or, in a sensor's editor, **Save as a new
+profile** makes its levels a profile it then follows; **Levels from** picks a profile for it (or **Its own** again).
+Editing a follower's levels changes the profile, and so every sensor that follows it,
+after asking. A number can follow a bands or an exact-states profile; on/off and exact
+states only their own kind.
+
+To have many follow one at once: **Apply to…** on the profile lists the sensors of a kind
+it fits, watched or not, to tick (those not watched yet start being watched); in **Scan
+my house**, choose **Use the profile … for the ticked**; or, on the watched list, filter
+to them and choose **Follow a profile** under it.
+
+The **Profiles** section lists each with how many follow it in its status pill: tap
+**N following** to see them in the watched list. Click a row to change its name and
+levels (every follower with it); **Delete** removes it (its followers keep a copy of its levels as their own).
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-library.webp" alt="Profiles from the library, searched for voltage: UK mains voltage (current law) marked as replacing yours with 72 following, the ENA's 2026 proposal, the US and EU, each with its bands, hold-off, what it's for and a Source link; two ticked" width="800">
+
+**From the library…** offers profiles that ship with Casa Mia, each with what it's for
+and where its numbers come from:
+
+- **Mains voltage and grid frequency** for the UK (current law, and the ENA's 2026
+  proposal), the US (120 V, ANSI C84.1; 60 Hz), the EU (230 V, EN 50160; 50 Hz), Japan
+  (100 V), China (220 V; 50 Hz) and Australia (230 V; 50 Hz).
+- **UK inverter trips (G98/G99):** how close the supply's voltage and frequency are to
+  tripping a grid-tied inverter, such as a Sunsynk.
+- **Safety; doors, windows and covers; locks, alarms and appliances:** the defaults by
+  what a thing is (above) as on/off and exact-states profiles, to Duplicate… and tweak
+  (a skylight whose open is a warning, say).
+- **Batteries:** replaceable cells; rechargeable packs kept to 20–80%, 85%, 90% or (for
+  LiFePO4) 100%; a home battery reaching its reserve; 12 V lead-acid and LiFePO4 by
+  voltage, and a LiFePO4 cell.
+- **Broadband:** a speed test's download against your plan (ADSL, FTTC 40 and 80, fibre
+  100 to 900, Starlink 100 to 300): fine at 70% of the plan, a warning under half.
+- **Water:** pool or hot tub pH, free chlorine for a pool and a hot tub, hot tub bromine,
+  a tropical or cold-water aquarium, a water softener's salt (from a [Salt Sentry][salt-sentry],
+  say).
+- **Indoor air:** CO₂, humidity, PM2.5, radon.
+- **Cold and hot storage:** freezer, fridge, hot water cylinder.
+- **Heating:** boiler pressure, room temperature.
+- **Outdoors and garden:** frost risk, pipes in an unheated space, soil moisture.
+- **Computers and network:** Wi-Fi signal, CPU temperature, CPU and memory use, disk
+  use. (A host's CPU and memory as entities: Home Assistant's System Monitor
+  integration, or the Supervisor integration's per-app sensors; both start disabled.)
+- **Reminders and due dates:** a date something is due, as days until it (a spa's
+  filter, a service, a renewal).
+- **Electric cars:** by each maker's everyday advice: an 80% daily limit (Tesla,
+  Volkswagen, Hyundai, Kia, BMW, Mercedes, GM), a 90% one (Polestar, Ford Mach-E), and
+  LFP packs (happy at 100%). Above the daily limit is a trip charge, a warning.
+
+Nothing starts ticked: search (a country, "voltage", "pH") and tick what you have.
+
+<details>
+<summary>Every profile in the library, with its levels</summary>
+
+Numbers are in the sensor's own unit (volts, hertz, %, °C, ppm); "after" is the
+hold-off, how long a new level must last before it counts.
+
+<!-- library table: tools/library_table.py --update -->
+
+| Profile | Category | Mode | Behaviour |
+| --- | --- | --- | --- |
+| Available (a task after an hour) | Availability | available | there nominal · unavailable task; after 1 h |
+| Available (critical) | Availability | available | there nominal · unavailable critical; after 1 min |
+| Stays gone | Availability | available | there warning · unavailable nominal; after 5 min |
+| Battery, replaceable (%) | Batteries | bands | under 5 warning · 5–20 task · 20 and over nominal; after 10 min; task becomes warning after 14 days |
+| Home battery at its reserve (%) | Batteries | bands | under 10 task · 10 and over nominal; after 30 min |
+| Lead-acid 12 V battery (V) | Batteries | bands | under 11.8 error · 11.8–12.2 warning · 12.2–12.4 task · 12.4–14.8 nominal · 14.8–15.5 warning · 15.5 and over error; after 10 min |
+| LiFePO4 12 V battery (V) | Batteries | bands | under 12 error · 12–12.8 task · 12.8–14.6 nominal · 14.6–15 warning · 15 and over error; after 10 min |
+| LiFePO4 cell (V) | Batteries | bands | under 2.5 critical · 2.5–3 task · 3–3.5 nominal · 3.5–3.65 task · 3.65 and over critical; after 10 min |
+| Low battery (on/off) | Batteries | on/off | off nominal · on task; after 1 min; task becomes warning after 14 days |
+| Rechargeable battery, 20-100% (LiFePO4) (%) | Batteries | bands | under 10 error · 10–20 task · 20 and over nominal; after 10 min |
+| Rechargeable battery, 20-80% (%) | Batteries | bands | under 10 error · 10–20 task · 20–80 nominal · 80 and over task; after 10 min |
+| Rechargeable battery, 20-85% (%) | Batteries | bands | under 10 error · 10–20 task · 20–85 nominal · 85 and over task; after 10 min |
+| Rechargeable battery, 20-90% (%) | Batteries | bands | under 10 error · 10–20 task · 20–90 nominal · 90 and over task; after 10 min |
+| Broadband download: ADSL (16 Mbps) | Broadband | bands | under 1.6 error · 1.6–8 warning · 8–11.2 task · 11.2 and over nominal; after 3700 s |
+| Broadband download: FTTC 40 (40 Mbps) | Broadband | bands | under 4 error · 4–20 warning · 20–28 task · 28 and over nominal; after 3700 s |
+| Broadband download: FTTC 80 (80 Mbps) | Broadband | bands | under 8 error · 8–40 warning · 40–56 task · 56 and over nominal; after 3700 s |
+| Broadband download: Fibre 100 (100 Mbps) | Broadband | bands | under 10 error · 10–50 warning · 50–70 task · 70 and over nominal; after 3700 s |
+| Broadband download: Fibre 300 (300 Mbps) | Broadband | bands | under 30 error · 30–150 warning · 150–210 task · 210 and over nominal; after 3700 s |
+| Broadband download: Fibre 500 (500 Mbps) | Broadband | bands | under 50 error · 50–250 warning · 250–350 task · 350 and over nominal; after 3700 s |
+| Broadband download: Fibre 900 (900 Mbps) | Broadband | bands | under 90 error · 90–450 warning · 450–630 task · 630 and over nominal; after 3700 s |
+| Broadband download: Starlink 100 (100 Mbps) | Broadband | bands | under 10 error · 10–50 warning · 50–70 task · 70 and over nominal; after 3700 s |
+| Broadband download: Starlink 200 (200 Mbps) | Broadband | bands | under 20 error · 20–100 warning · 100–140 task · 140 and over nominal; after 3700 s |
+| Broadband download: Starlink 300 (300 Mbps) | Broadband | bands | under 30 error · 30–150 warning · 150–210 task · 210 and over nominal; after 3700 s |
+| Freezer (°C) | Cold and hot storage | bands | under -18 nominal · -18–-15 task · -15–-5 warning · -5 and over critical; after 30 min |
+| Fridge (°C) | Cold and hot storage | bands | under 0 warning · 0–5 nominal · 5–8 task · 8–12 warning · 12 and over error; after 30 min |
+| Hot water cylinder (°C) | Cold and hot storage | bands | under 46 warning · 46–50 task · 50–80 nominal · 80 and over warning; after 1 h |
+| CPU temperature (°C) | Computers and network | bands | under 70 nominal · 70–80 task · 80–85 warning · 85 and over error; after 10 min |
+| CPU use (%) | Computers and network | bands | under 80 nominal · 80–95 task · 95 and over warning; after 15 min |
+| Disk used (%) | Computers and network | bands | under 80 nominal · 80–90 task · 90–95 warning · 95 and over error; after 10 min; task becomes warning after 7 days |
+| Memory use (%) | Computers and network | bands | under 80 nominal · 80–90 task · 90 and over warning; after 15 min |
+| Wall tablet CPU use (%) | Computers and network | bands | under 75 nominal · 75–90 warning · 90 and over error; after 15 min |
+| Wi-Fi signal (dBm) | Computers and network | bands | under -85 error · -85–-75 warning · -75–-67 task · -67 and over nominal; after 10 min |
+| Door (on/off) | Doors, windows and covers | on/off | off nominal · on task; after 1 min |
+| Garage door (on/off) | Doors, windows and covers | on/off | off nominal · on task; after 1 min |
+| Opening (on/off) | Doors, windows and covers | on/off | off nominal · on task; after 1 min |
+| Window (on/off) | Doors, windows and covers | on/off | off nominal · on task; after 1 min |
+| Window or cover: closed (states) | Doors, windows and covers | exact states | closed nominal · else task; after 1 min |
+| Electric car battery, 80% daily (%) | Electric cars | bands | under 10 error · 10–20 task · 20–80 nominal · 80 and over warning; after 10 min |
+| Electric car battery, 90% daily (%) | Electric cars | bands | under 10 error · 10–20 task · 20–90 nominal · 90 and over warning; after 10 min |
+| Electric car battery, LFP (%) | Electric cars | bands | under 10 error · 10–20 task · 20 and over nominal; after 10 min |
+| Boiler pressure (bar) | Heating | bands | under 0.5 error · 0.5–1 task · 1–2 nominal · 2–2.5 task · 2.5 and over warning; after 30 min; task becomes warning after 3 days |
+| Room temperature (°C) | Heating | bands | under 12 warning · 12–16 task · 16–25 nominal · 25–28 task · 28 and over warning; after 30 min |
+| Indoor CO2 (ppm) | Indoor air | bands | under 380 task · 380–1000 nominal · 1000–1500 task · 1500–2500 warning · 2500 and over error; after 15 min |
+| Indoor humidity (%) | Indoor air | bands | under 30 task · 30–60 nominal · 60–70 task · 70 and over warning; after 1 h |
+| PM2.5 (µg/m³) | Indoor air | bands | under 15 nominal · 15–35 task · 35–55 warning · 55 and over error; after 30 min |
+| Radon (Bq/m³) | Indoor air | bands | under 100 nominal · 100–200 task · 200 and over warning; after 24 h |
+| UK inverter trips: frequency (G98/G99) | Inverters | bands | under 47 critical · 47–47.5 error · 47.5–49.8 warning · 49.8–50.2 nominal · 50.2–51.5 warning · 51.5–52 error · 52 and over critical; after 5 s |
+| UK inverter trips: voltage (G98/G99) | Inverters | bands | under 184 critical · 184–200.1 error · 200.1–216.2 warning · 216.2–253 nominal · 253–262.2 warning · 262.2–273.7 error · 273.7 and over critical, ±1 %; after 5 s |
+| Alarm panel (states) | Locks, alarms and appliances | exact states | disarmed, armed_home, armed_away, armed_night, armed_vacation, armed_custom_bypass, arming, pending, disarming nominal · triggered critical · else warning; at once |
+| Connected (on/off) | Locks, alarms and appliances | on/off | off error · on nominal; after 1 min |
+| Lock: locked (states) | Locks, alarms and appliances | exact states | locked nominal · jammed error · else task; after 1 min |
+| Robot mower (states) | Locks, alarms and appliances | exact states | docked, mowing, returning, paused nominal · else error; after 1 min |
+| Robot vacuum (states) | Locks, alarms and appliances | exact states | docked, cleaning, returning, idle, paused nominal · else error; after 1 min |
+| Update available (on/off) | Locks, alarms and appliances | on/off | off nominal · on task; after 1 min |
+| Australia grid frequency (50 Hz) | Mains and grid | bands | under 49 critical · 49–49.5 error · 49.5–49.85 warning · 49.85–50.15 nominal · 50.15–50.5 warning · 50.5 and over error; after 30 s |
+| Australia mains voltage (230 V, AS 60038) | Mains and grid | bands | under 207 critical · 207–216.2 warning · 216.2–253 nominal · 253–262 warning · 262 and over critical, ±1 %; after 30 s |
+| China grid frequency (50 Hz, GB/T 15945) | Mains and grid | bands | under 49.5 error · 49.5–49.8 warning · 49.8–50.2 nominal · 50.2–50.5 warning · 50.5 and over error; after 30 s |
+| China mains voltage (220 V, GB/T 12325) | Mains and grid | bands | under 187 critical · 187–198 warning · 198–235.4 nominal · 235.4–242 warning · 242 and over critical, ±1 %; after 30 s |
+| EU grid frequency (50 Hz) | Mains and grid | bands | under 49 critical · 49–49.5 error · 49.5–49.8 warning · 49.8–50.2 nominal · 50.2–50.5 warning · 50.5 and over error; after 30 s |
+| EU mains voltage (230 V, EN 50160) | Mains and grid | bands | under 195.5 critical · 195.5–207 warning · 207–253 nominal · 253–264.5 warning · 264.5 and over critical, ±1 %; after 30 s |
+| Japan mains voltage (100 V) | Mains and grid | bands | under 90 critical · 90–95 warning · 95–107 nominal · 107–110 warning · 110 and over critical, ±1 %; after 30 s |
+| UK grid frequency | Mains and grid | bands | under 48.8 critical · 48.8–49.5 error · 49.5–49.8 warning · 49.8–50.2 nominal · 50.2–50.5 warning · 50.5 and over error; after 30 s |
+| UK mains voltage (ENA proposed, 2026) | Mains and grid | bands | under 195.5 critical · 195.5–207 warning · 207–253 nominal · 253–262 warning · 262 and over critical, ±1 %; after 30 s |
+| UK mains voltage (current law) | Mains and grid | bands | under 207 critical · 207–216.2 warning · 216.2–253 nominal · 253–262 warning · 262 and over critical, ±1 %; after 30 s |
+| US grid frequency (60 Hz) | Mains and grid | bands | under 59.3 critical · 59.3–59.5 error · 59.5–59.9 warning · 59.9–60.1 nominal · 60.1–60.5 warning · 60.5 and over error; after 30 s |
+| US mains voltage (120 V, ANSI C84.1) | Mains and grid | bands | under 104 critical · 104–110 error · 110–114 warning · 114–126 nominal · 126–127 warning · 127–132 error · 132 and over critical, ±1 %; after 30 s |
+| Frost risk (°C) | Outdoors and garden | bands | under -5 warning · -5–3 task · 3 and over nominal; after 30 min |
+| Security light on too long (on/off) | Outdoors and garden | on/off | off nominal · on warning; after 30 min |
+| Soil moisture (%) | Outdoors and garden | bands | under 15 warning · 15–20 task · 20–60 nominal · 60–80 task · 80 and over warning; after 1 h |
+| Unheated space, pipes (°C) | Outdoors and garden | bands | under 0 error · 0–3 warning · 3 and over nominal; after 30 min |
+| Reminder due (days) | Reminders and due dates | bands | under -30 critical · -30–0 error · 0–7 warning · 7–14 task · 14 and over nominal; at once |
+| Carbon monoxide (on/off) | Safety | on/off | off nominal · on critical; at once |
+| Gas (on/off) | Safety | on/off | off nominal · on critical; at once |
+| Leak (on/off) | Safety | on/off | off nominal · on critical; at once |
+| Problem (on/off) | Safety | on/off | off nominal · on error; after 1 min |
+| Safety (on/off) | Safety | on/off | off nominal · on critical; at once |
+| Smoke (on/off) | Safety | on/off | off nominal · on critical; at once |
+| Tamper (on/off) | Safety | on/off | off nominal · on warning; after 1 min |
+| Aquarium, cold water (°C) | Water | bands | under 4 warning · 4–10 task · 10–22 nominal · 22–26 task · 26 and over warning; after 30 min |
+| Aquarium, tropical (°C) | Water | bands | under 20 error · 20–23 warning · 23–24 task · 24–27 nominal · 27–29 task · 29–31 warning · 31 and over error; after 30 min |
+| Hot tub bromine (ppm) | Water | bands | under 2 error · 2–4 task · 4–8 nominal · 8–10 task · 10 and over error; after 5 min; task becomes warning after 2 days |
+| Hot tub free chlorine (ppm) | Water | bands | under 1 error · 1–3 task · 3–5 nominal · 5–10 task · 10 and over error; after 5 min; task becomes warning after 2 days |
+| Pool free chlorine (ppm) | Water | bands | under 0.5 error · 0.5–1 task · 1–3 nominal · 3–5 task · 5–10 warning · 10 and over error; after 5 min; task becomes warning after 2 days |
+| Pool or hot tub pH | Water | bands | under 7 warning · 7–7.2 task · 7.2–7.8 nominal · 7.8–8 task · 8 and over warning; after 5 min; task becomes warning after 2 days |
+| Pool or hot tub pH (detailed) | Water | bands | under 5 critical · 5–7 error · 7–7.2 warning · 7.2–7.4 task · 7.4–7.6 nominal · 7.6–7.8 task · 7.8–8 warning · 8–9 error · 9 and over critical; after 5 min; task becomes warning after 2 days |
+| Water softener salt (%) | Water | bands | under 10 warning · 10–25 task · 25 and over nominal; after 1 h; task becomes warning after 7 days |
+
+<!-- end of library table -->
+
+</details>
+
+**In a watch's editor,** Levels from offers the library too, under your own profiles: the
+ones that might suit this sensor, best first (by what it is, its unit, and the words in
+its name: a freezer finds Freezer, a spa's pH finds the pH profiles, a date finds
+Reminder due). Choosing one takes it into your profiles and has the sensor follow it,
+in one go; one you already have by that name is used as it is, never replaced.
+
+**Duplicate…** in a profile's editor starts a new one from its levels, to change what differs:
+one room temperature profile per floor, say, as each floor up runs a little warmer.
+
+**Export all** saves all your profiles as a JSON file to share, and **Export…** in a profile's editor just that one; **Import…** takes one (yours, or someone else's). A
+profile with the name of one you have replaces its levels, so its followers change
+with it: the import starts those unticked, and says so.
+
+### Groups
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-group.webp" alt="Editing the group Battery levels: its name, Levels from set to the built-in ones, by what each is, the chips Domain: sensor and Device class: battery, and the four battery sensors that match" width="800">
+
+A group is a saved set of filters (domain, area, label, integration, device, device
+class, kind, a search) and **their levels**: a profile, or **built-in levels, by what
+each is** (each member set up as Watch an entity would: a cover closed, a lock locked, a
+leak critical; what has no built-in levels is passed over). Every roof window is domain
+`cover` with built-in levels: no profile needed. A pressure, and most numbers, have no
+built-in levels: when nothing that matches has any, the dialog asks you to choose, and
+**New profile…** beside the choice makes one there and then. Above the list it says when
+none would join, or when some would be passed over (greyed out) for want of levels, and
+what to do; its button says how many will. Everything matching is watched, following the
+profile, and **whatever matches later joins by itself**: put in a new plug and it's
+watched within a minute, no setting up. Make one with **+ New group**: as you choose the
+filters it lists what they match (up to 200), so you see what it takes before it takes
+it. Something there that shouldn't be (an ESP board's own VCC reading in a mains voltage
+group, say)? Rule it out in the search with a minus word, `-vcc`: it stays out as new
+devices arrive too. Started watching one of many alike? Its editor
+offers **Watch them all as a group…**, which starts a new group with filters for those
+like it (its integration, its device class, its name without its device's): adjust them,
+choose their levels, and make it.
+
+- Members the profile doesn't fit (another kind) are passed over; sensors already
+  watched keep their own levels.
+- Edit it (click its row) and members the filters no longer take stop being watched.
+- **Stop watching** a member and the group remembers it, so it isn't pulled back;
+  **Let them back** on the group undoes that.
+- **N in it**, the group's status pill, shows the members in the watched list (a Group
+  chip there too).
+- **Delete** a group and its members stay watched, as they are; new ones stop joining.
+- The `list` action takes `group` (the group's name): only its members, and its own
+  worst level, for a panel or an automation about just the mains plugs.
+
+**Watch anything from Home Assistant's own pages, with a label.** Make a group whose
+filter is a label (say *Watch*), following the defaults or a profile. Then, from any
+entity's settings in Home Assistant (its dialog's cog), give it that label: within a
+minute it's watched. A label or two more (*Watch: mains*, following UK mains voltage)
+cover most cases, and taking the label off doesn't stop the watch: Stop watching does.
+
+### Scan my house
+
+Suggest bands for everything that isn't watched yet, at once: narrow it by area,
+floor, label, integration, maker, model, device, device class or category, or scan everything. Without a **domain**, a scan
+looks at sensors, binary sensors, updates, covers, locks, valves, vacuums, mowers and alarm panels, not
+every light, switch and helper; choose a domain to scan others (all your `number`s, say). A scan reads 500 sensors a
+round, and the page says how many remain; **Scan the next 500** carries on where it
+stopped. Tick the suggestions you want and press **Watch the ticked**: nothing is
+watched until you accept it.
+
+## In Home Assistant
+
+The **Sensor Watch** device has:
+
+- **Status:** the worst level now (nominal, task, warning, error or critical), its icon
+  in that level's colour on every dashboard card, whatever its State colour setting: Home Assistant
+  colours no sensor by its state, so Sensor Watch does. Its
+  attributes hold `watching` (how many sensors) and, for each level, the ten longest
+  standing culprits (`task_list`, `warning_list`, `error_list`, `critical_list`: each
+  with its entity, name, value, message and since when).
+- **Tasks**, **Warnings**, **Errors** and **Critical:** how many sensors are at each level.
+- **Problem:** on while any sensor is at warning or worse (a task alone isn't a problem).
+
+### The eye in an entity's dialog
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-eye-detail.webp" alt="An entity's dialog in Home Assistant with Sensor Watch's eye at the top, in amber with WARNING beside it" width="600">
+
+Open any entity in Home Assistant (the dialog with its name, its history and the settings
+cog) and, for an admin, an eye sits among the icons at the top:
+
+- **An outlined eye with a plus:** not watched. Tap it to watch it: the Sensor
+  Watch page opens with its editor, its history drawn and the profiles that fit, as
+  **Watch an entity** does.
+- **An eye in its level's colour, with the level:** watched, and how it is now (on a
+  phone, the colour alone). Point at it for its message too. Tap it to open its watch.
+  The eye follows the level while the dialog is open.
+
+It leans on the dialog's insides, which aren't public API: if a Home Assistant update
+moves them, the eye isn't shown and the browser's console says why.
+
+### Home Assistant's own health
+
+Sensor Watch also watches Home Assistant itself, counted like any watched sensor (in the
+status, the counts, the problem sensor, the event and the List action), so it never
+says all is well while Home Assistant is broken:
+
+- **Recorder** and **History** not running: **critical**. Without them there is no
+  history or statistics at all (Home Assistant's own History panel and graphs stop too).
+  A common cause is the Recorder's database being out of reach when Home Assistant
+  starts (a database on another machine that was down): the Recorder doesn't try again
+  by itself, so fix the database, then restart Home Assistant.
+- An **integration that has failed to set up** (setup error, retrying, migration error,
+  or not loaded), for more than five minutes: **error**, named by its title and
+  integration, with Home Assistant's reason. Disabled integrations don't count. When it
+  recovers, the event says so (level nominal) and it leaves the list.
+
+A discovery you told Home Assistant to **Ignore** is kept as an entry that never loads,
+by design, so it never counts.
+
+The page's **Home Assistant itself** section lists these rows, with a switch for each
+kind (**The Recorder and History**, **Integrations that fail to set up**) and an
+**Ignore** on each failing integration (one you know about and don't need, say); the
+ignored ones are listed underneath, each with **Watch again**.
+
+These are checked once Home Assistant has started, and again the moment Home Assistant
+says an integration's state changed or a component loaded (no waiting on a timer). In the event
+and the List action their `entity_id` is `homeassistant.recorder`,
+`homeassistant.history` or `integration.<its entry id>`.
+
+There is no entity per watched sensor: the summary, the event and the action below tell
+the rest of Home Assistant which ones they are.
+
+### Device triggers
+
+The quickest way to build on Sensor Watch: in a new automation, **+ Add trigger → Device →
+Sensor Watch**, then one of:
+
+- **A watched sensor reached a level, or worse:** choose the level (Warning, say); a
+  sensor that jumps straight to Critical counts too.
+- **A watched sensor escalated:** a level left standing moved up a rung.
+- **A watched sensor is back to nominal.**
+
+Each can be narrowed to one of your groups. In the automation's actions,
+`{{ trigger.event.data.name }}`, `level`, `message`, `value` and the event's other fields
+say which sensor and why. A level found at Home Assistant's start (or when a watch is
+edited) doesn't fire them, since nothing reached it then; the event below carries those
+too, as `initial`.
+
+### The event
+
+Each change of level (a worse one after its hold-off, or a step of its escalation) fires
+`casa_mia_sensor_watch`, with `entity_id`, `name`, `level`, `previous`, `value`,
+`unit` (its unit: none for an attribute, `days` for a date) and `message`; `group` (its group's name), `area` and `attribute` (the attribute watched)
+when it has them; and `escalated` (true when it's shown a level up for having stood),
+`real` (the level its reading gives) and `since` (when that level began). `stale` is
+true when the level is for having gone quiet (Stale, under Over time), not for its value;
+`value` is then the last one it sent. The List action's rows carry it too.
+
+A sensor found at a level other than nominal, rather than changed to it, fires it too,
+with `initial` true and no `previous`: at Home Assistant's start (held until it has
+started, so automations hear it), and when its watch is edited or Refresh state is
+pressed. A restart clears Home Assistant's own notifications, so this is how a problem
+that was there before it is raised again. The blueprint raises its notification in the
+sidebar again for it, but doesn't send it to a phone.
+
+**The easy way: the blueprint.** The integration installs **Notify on Sensor Watch**
+(Settings → Automations & scenes → Blueprints; it's in
+`blueprints/automation/casa_mia/`). Make an automation from it and choose:
+
+- **At this level or worse:** task, warning (the default), error or critical.
+- **Only this group:** one of your groups (a dropdown), or empty for everything watched.
+- **Notify action:** a dropdown of your notify actions (each phone with the Home
+  Assistant app has one, e.g. `notify.mobile_app_ann_phone`), or empty for none.
+- **Also as a Home Assistant notification:** one per sensor in the sidebar, replaced as
+  its level changes and cleared when it's back.
+- **Say when it's back:** when it drops below the level again.
+- **Anything else:** more actions (a light, a speaker), with `title`, `text`, `name`,
+  `level`, `previous`, `value`, `unit`, `reading` (the value with its unit), `message`,
+  `area`, `group`, `entity_id`, `escalated`,
+  `real`, `since`, `initial` and `back` to use in them.
+
+Its title leads with the level as a word: for example "Critical: Plug 3 voltage", then
+"Mains far too low (198 V) · Barn · Mains voltage"; and "Back to nominal: Plug 3 voltage"
+when it's back.
+
+On a phone with the Home Assistant app (a `notify.mobile_app_…` action), each
+notification also carries the phone's own sense of how much it matters:
+
+- **Android:** a channel per level (*Sensor Watch: Task*, *Warning*, *Error*,
+  *Critical* and *Back*), each with the level's colour and icon. Android makes a channel
+  when its first notification arrives; from then on its sound and importance are yours to
+  set in the phone's notification settings, so a critical can ring and a task stay quiet.
+- **iPhone:** a task (and being back) arrives quietly, a warning as usual, an error as
+  time-sensitive, and a critical as a critical alert, through silent mode and Focus once
+  you allow critical alerts for the app.
+- **Both:** a sensor's next notification replaces its last, so being back replaces the
+  alarm instead of adding to it.
+
+Other notify actions (email, Telegram) get the plain title and text. The integration replaces the file when it changes, so to change the
+blueprint itself, copy it under another name first.
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-blueprint.webp" alt="An automation from the Notify on Sensor Watch blueprint: at this level or worse (Warning chosen), only this group (Flood Lights, from a dropdown), the notify action, a Home Assistant notification and say when it's back switched on, and anything else" width="800">
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-notifications.webp" alt="The Home Assistant app's Notifications on a phone: Error: Spa pH, highly acidic (5.8), three minutes ago, and Warning: Download Speed, well below the plan (56.58), 22 minutes ago, each with Dismiss" width="300">
+
+*Also as a Home Assistant notification:* one per sensor, its level leading the title, in
+the app's Notifications.
+
+**By hand,** an automation on the event:
+
+```yaml
+triggers:
+  - trigger: event
+    event_type: casa_mia_sensor_watch
+    event_data:
+      level: task
+actions:
+  - action: notify.mobile_app_ann_phone
+    data:
+      message: "{{ trigger.event.data.message or trigger.event.data.name }}"
+```
+
+### The List action
+
+`casa_mia_sensor_watch.list` returns every watched sensor at the levels you ask for
+(everything that isn't nominal by default), worst first, then longest standing; use it
+with a response variable and loop over it in a template:
+
+```yaml
+actions:
+  - action: casa_mia_sensor_watch.list
+    data:
+      levels: [warning, error, critical]
+    response_variable: watch
+  - action: notify.mobile_app_ann_phone
+    data:
+      message: >-
+        {% for s in watch.sensors %}{{ s.name }}: {{ s.level }} ({{ s.value }})
+        {% endfor %}
+```
+
+Add `group: Mains voltage` to ask about one group only (and its own worst level).
+
+Until 2026.11.3 these two actions were `casa_mia.sensor_watch_list` and
+`casa_mia.sensor_watch_refresh`. Those names still work for now, with a warning in the
+log, and will be removed.
+
+### The card
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-card-detail.webp" alt="The Sensor Watch card listing an error, a warning and a task, each with its value and how long it has stood" width="380">
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/card-picker.webp" alt="Home Assistant's Add to dashboard dialog searched for casa: previews of the Camera Commander, the Over layer and the Sensor Watch card (an example of a bad day: a critical plug voltage, a warm freezer, the softener's salt)" width="800">
+
+**Casa Mia Sensor Watch** (in the card picker) lists what isn't nominal, worst first,
+each with its level, message, value (live from the entity) and how long it has stood;
+tap a row for the entity's details. Options: a title, a **group** (chosen from your
+groups, ✕ for every watched sensor), the levels to list, at most how many, what to do
+when all is well (**hide**, the default, or say so), and what **each row shows**: the
+entity's icon, its level, name, message, value and how long, any of them, in the order
+you drag them into (a row of just an icon, a name and a value for a narrow panel, say).
+The name and message stack in one place, wherever the first of them is. The **icon
+colour** is the level's (the default), the entity's own state colour as a tile shows
+it, or none.
+
+Hidden, it takes its panel with it in a Tablet Layout: put it in a side panel with a
+garnish heading ("Needs looking at") and the panel appears only when something does.
+
+### The gauge card
+
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.9/docs/screenshots/sensor-watch-gauge.webp" alt="Three Sensor Watch gauges: mains voltage at 241 V, nominal, on an arc of red, amber and green bands; hot water at 46.8 °C, nominal; and a smoke alarm's battery at 4 %, a warning saying Battery flat" width="800">
+
+**Casa Mia Sensor Watch gauge** (`custom:casa-mia-sensor-watch-gauge`) shows one watched
+number on a half circle whose coloured parts are its bands. Home Assistant's own gauge
+has its colours typed into the card, where they go out of date the next time the watch
+is edited. This one has none of its own: Sensor Watch sends the bands with the level, and
+again when either changes, so the card follows the watch.
+
+Under the arc are the value, the name, the level as a pill and the watch's message. The
+needle and the pill are in the colour of the level that counts, which is not always the
+band the needle points into: a hold-off, an escalation or Stale can make them differ, and
+the message says which. A stale sensor's value is dimmed, as it is the last one it sent.
+Tap the card for the entity's details.
+
+Options: the **entity**, a **name** instead of the entity's own, and where the **arc
+starts and ends**. Left empty, the ends come from the bands (0 and 100 for a percentage).
+
+- An entity that isn't watched says so, with **Watch it** for an admin, which opens
+  Sensor Watch's page at that entity.
+- One watched by on and off, by its states or for being available has no bands, so the
+  card shows its value and level without an arc, and says why.
+- A watch that is disabled says so and shows no level.
+- When Sensor Watch isn't running, or the connection to Home Assistant is lost, the card
+  dims and says its level is not current, and since when. It recovers by itself.
+- Any signed-in user sees the card, not only admins: it tells them no more than the List
+  action does.
+
+[salt-sentry]: https://www.tindie.com/products/ErikLemcke/salt-sentry-water-softener-monitor/
 
 ## Part of Casa Mia
 
 Sensor Watch is part of [Casa Mia](https://github.com/gazoodle/casa-mia), where it is written and
-released. This repository is generated from Casa Mia 2026.11.8 (commit `a23317266f`) and
-isn't edited by hand, so [issues](https://github.com/gazoodle/casa-mia/issues) and changes go to Casa Mia.
+released. This repository is generated from Casa Mia 2026.11.9 (commit `5cd632e42c`) and
+isn't edited by hand, so a change to Sensor Watch is made in Casa Mia. A problem with it is
+reported here, in this repository's [issues](https://github.com/gazoodle/casa-mia-sensor-watch/issues).
 
 The Casa Mia app installs this same integration itself. A house with both needs to do
-nothing about it: [With HACS or the Marketplace](https://github.com/gazoodle/casa-mia/blob/2026.11.8/docs/applets/sensor-watch.md#with-hacs-or-the-marketplace)
-says what happens.
+nothing about it: [With HACS or the Marketplace](#with-hacs-or-the-marketplace) says what happens.
