@@ -10,9 +10,9 @@
 
 Tell it once what normal looks like, for every sensor in the house, and it tells you only when something isn't: what needs doing, or has gone wrong, before the family notices.
 
-> **Maturity: Beta.** Complete and used every day; its features have settled. Please report what breaks in your setup. ([The levels](https://github.com/gazoodle/casa-mia/blob/2026.11.11/docs/README.md#maturity))
+> **Maturity: Beta.** Complete and used every day; its features have settled. Please report what breaks in your setup. ([The levels](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/README.md#maturity))
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-card.webp" alt="A Home Assistant dashboard view named Sensor Watch. On the left the Sensor Watch card lists what needs attention, worst first: an error (Boiler fault, problem reported), a warning (Hall smoke alarm battery, battery flat, 4%) and four tasks (three updates available, and a front door sensor battery to replace at 17%), each with its level as a coloured pill, its message, its value and how long it has stood. On the right four Sensor Watch gauges, each an arc of its watch's coloured bands with a needle: mains voltage 241 V, nominal; hot water 46.8 °C, nominal; the hall smoke alarm at 4%, warning, battery flat; and the landing smoke alarm at 88%, nominal" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-card.webp" alt="A Home Assistant dashboard view named Sensor Watch. On the left the Sensor Watch card lists what needs attention, worst first: an error (Boiler fault, problem reported), a warning (Hall smoke alarm battery, battery flat, 4%) and four tasks (three updates available, and a front door sensor battery to replace at 17%), each with its level as a coloured pill, its message, its value and how long it has stood. On the right four Sensor Watch gauges, each an arc of its watch's coloured bands with a needle: mains voltage 241 V, nominal; hot water 46.8 °C, nominal; the hall smoke alarm at 4%, warning, battery flat; and the landing smoke alarm at 88%, nominal" width="800">
 
 ## What it's for
 
@@ -37,7 +37,7 @@ action always say what's wrong, so you choose what happens next:
   of whoever's home, critical to everyone. The **Notify on Sensor Watch** blueprint does
   this in a few clicks ([The event](#the-event)).
 - **Show it:** a panel of what needs attention on the wall tablets. Pair it with
-  [garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.11/docs/tablet-layout.md#showing-and-hiding), so the panel's heading
+  [garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/tablet-layout.md#showing-and-hiding), so the panel's heading
   disappears with it on a quiet day, rather than a proud *WARNINGS* over nothing.
 - **Look into it:** hand the list to an AI agent (Home Assistant's AI tasks, say) to
   investigate what has gone wrong and why, before you even reach for the laptop.
@@ -46,10 +46,10 @@ action always say what's wrong, so you choose what happens next:
   filter due) added to a Home Assistant to-do list, and ticked off by itself when the
   sensor is nominal again.
 - **Escalate:** a warning nobody has dealt with in a day becomes a text, through
-  [Phone and SMS](https://github.com/gazoodle/casa-mia/blob/2026.11.11/docs/applets/phone-and-sms.md), which works even when the internet doesn't.
+  [Phone and SMS](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/applets/phone-and-sms.md), which works even when the internet doesn't.
 - **Say it with a light:** the hallway lamp glows amber while anything is a warning.
 - **Put it over everything:** a critical comes up on every wall tablet, over whatever
-  it's showing, with the [Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.11/docs/over-layer.md).
+  it's showing, with the [Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/over-layer.md).
 - **Brief the morning:** the voice assistant reads out the day's tasks at breakfast.
 - **Watch the trends:** the counts are measurements, so Home Assistant's own history
   shows which integration falls over most often, and when.
@@ -63,6 +63,9 @@ Each sensor gets a level:
 | **Warning** | Worth a look. | The freezer is at −14 °C. |
 | **Error** | Something is wrong. | The freezer is at −8 °C, or its sensor is unavailable. |
 | **Critical** | Drop everything. | A leak sensor is wet. |
+
+A sensor that is unavailable because its integration failed to set up is counted as that
+integration: see [A failed integration is one problem](#a-failed-integration-is-one-problem).
 
 A sensor that goes **unavailable** is part of this, not an afterthought: by default it
 counts as an error, because a sensor that has stopped reporting is often the first sign
@@ -212,12 +215,12 @@ Sensor Watch tells; the rest of Casa Mia shows, and only when there's something 
   entity says whether anything needs attention, whatever the size of the house.
 - **[The Sensor Watch card](#the-card):** what needs looking at, worst first, with each
   watch's message and its value live; hidden altogether when all is well.
-- **[Tablet Layout](https://github.com/gazoodle/casa-mia/blob/2026.11.11/docs/tablet-layout.md):** a panel on an edge of the wall tablet's screen
+- **[Tablet Layout](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/tablet-layout.md):** a panel on an edge of the wall tablet's screen
   for what needs attention, sized to its cards, and hidden when they are.
-- **[Garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.11/docs/tablet-layout.md#showing-and-hiding):** the panel's heading is garnish,
+- **[Garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/tablet-layout.md#showing-and-hiding):** the panel's heading is garnish,
   so it never holds the panel open on its own. Things go wrong, the panel and its heading
   appear; they're dealt with, and the panel goes, gap and all.
-- **[The Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.11/docs/over-layer.md):** a critical comes up over whatever the tablet is
+- **[The Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/over-layer.md):** a critical comes up over whatever the tablet is
   showing, and goes when it's sorted.
 - **The Home tile** in the Casa Mia panel shows the house's health at a glance: the
   worst level, the counts and the worst culprit.
@@ -357,7 +360,7 @@ three steps to start, with **Set up, step by step…**, **+ New group** and **Sc
 
 ### Set up
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-setup.webp" alt="The set-up's first step, What's in your house: groups to tick for updates, battery levels, leak sensors, an integration's mains voltage (with the library's UK mains voltage profile), problem and smoke sensors, the alarm panel, covers and locks, each with how many it would watch and their levels" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-setup.webp" alt="The set-up's first step, What's in your house: groups to tick for updates, battery levels, leak sensors, an integration's mains voltage (with the library's UK mains voltage profile), problem and smoke sensors, the alarm panel, covers and locks, each with how many it would watch and their levels" width="800">
 
 **Set up…**, beside Scan my house, goes through the first setting up in four steps. Any
 step can be skipped, it can be opened again at any time, and everything it makes is an
@@ -386,7 +389,7 @@ ordinary group, profile or automation that you can change or delete afterwards.
 
 ### Watched sensors
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch.webp" alt="The Sensor Watch page: the watched sensors under one toolbar of search and filter chips, with Needs attention at the top (a boiler fault as an error, a smoke alarm's flat battery as a warning and three tasks), then the rest under a heading per group, each row with its status pill, value, message and levels" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch.webp" alt="The Sensor Watch page: the watched sensors under one toolbar of search and filter chips, with Needs attention at the top (a boiler fault as an error, a smoke alarm's flat battery as a warning and three tasks), then the rest under a heading per group, each row with its status pill, value, message and levels" width="800">
 
 Every watched sensor, its level now (the **status pill** at the start of its row) and its
 value, with a search and filter **chips** along the top so a house with hundreds of them
@@ -398,6 +401,10 @@ edit its levels.
 watched one by one; the sort applies within each. Grouped, the list starts with **Needs
 attention**: every sensor at a level other than nominal, whichever group it is in, so a
 problem in the last group isn't a screen or two down.
+
+A row that needs attention has **Snooze…**, for a fault you know about and can't fix yet:
+see [Snooze](#snooze). Those snoozed are listed dimmed under their own **Snoozed** heading,
+each with **Unsnooze**, and aren't counted in the chips.
 
 **Stop watching** is in a sensor's editor, at the foot. Under the list, **Levels from…**
 gives the sensors shown a profile's levels, and while a filter is set **Stop watching
@@ -426,7 +433,7 @@ hold-off first, so set it to 0 while trying a sensor out.
 
 ### Watch an entity
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-editor.webp" alt="Editing a hot water temperature watch: a month of hourly statistics drawn as a line over the coloured bands, Levels from set to Its own, and the bands as a ladder: Warning above 55, Nominal 41 to 55 °C, Warning below 41, with Move too: Bands above +1 and Everything +1 offered under Nominal after its top edge was raised" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-editor.webp" alt="Editing a hot water temperature watch: a month of hourly statistics drawn as a line over the coloured bands, Levels from set to Its own, and the bands as a ladder: Warning above 55, Nominal 41 to 55 °C, Warning below 41, with Move too: Bands above +1 and Everything +1 offered under Nominal after its top edge was raised" width="800">
 
 Any entity can be watched: a sensor, but also an `input_number` you type a reading into
 (a pool's pH from a test strip), a `number`, a `switch` that should stay on, a `select`.
@@ -617,7 +624,7 @@ The **Profiles** section lists each with how many follow it in its status pill: 
 **N following** to see them in the watched list. Click a row to change its name and
 levels (every follower with it); **Delete** removes it (its followers keep a copy of its levels as their own).
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-library.webp" alt="Profiles from the library, searched for voltage: UK mains voltage (current law) marked as replacing yours with 72 following, the ENA's 2026 proposal, the US and EU, each with its bands, hold-off, what it's for and a Source link; two ticked" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-library.webp" alt="Profiles from the library, searched for voltage: UK mains voltage (current law) marked as replacing yours with 72 following, the ENA's 2026 proposal, the US and EU, each with its bands, hold-off, what it's for and a Source link; two ticked" width="800">
 
 **From the library…** offers profiles that ship with Casa Mia, each with what it's for
 and where its numbers come from:
@@ -769,7 +776,7 @@ with it: the import starts those unticked, and says so.
 
 ### Groups
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-group.webp" alt="Editing the group Battery levels: its name, Levels from set to the built-in ones, by what each is, the chips Domain: sensor and Device class: battery, and the four battery sensors that match" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-group.webp" alt="Editing the group Battery levels: its name, Levels from set to the built-in ones, by what each is, the chips Domain: sensor and Device class: battery, and the four battery sensors that match" width="800">
 
 A group is a saved set of filters (domain, area, label, integration, device, device
 class, kind, a search) and **their levels**: a profile, or **built-in levels, by what
@@ -826,13 +833,15 @@ The **Sensor Watch** device has:
   colours no sensor by its state, so Sensor Watch does. Its
   attributes hold `watching` (how many sensors) and, for each level, the ten longest
   standing culprits (`task_list`, `warning_list`, `error_list`, `critical_list`: each
-  with its entity, name, value, message and since when).
+  with its entity, name, value, message and since when). `snoozed` is how many are
+  [snoozed](#snooze), which none of the levels count, and `snoozed_list` names them, each
+  with its level, `until` and `by`.
 - **Tasks**, **Warnings**, **Errors** and **Critical:** how many sensors are at each level.
 - **Problem:** on while any sensor is at warning or worse (a task alone isn't a problem).
 
 ### The eye in an entity's dialog
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-eye-detail.webp" alt="An entity's dialog in Home Assistant with Sensor Watch's eye at the top, in amber with WARNING beside it" width="600">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-eye-detail.webp" alt="An entity's dialog in Home Assistant with Sensor Watch's eye at the top, in amber with WARNING beside it" width="600">
 
 Open any entity in Home Assistant (the dialog with its name, its history and the settings
 cog) and, for an admin, an eye sits among the icons at the top:
@@ -859,9 +868,10 @@ says all is well while Home Assistant is broken:
   starts (a database on another machine that was down): the Recorder doesn't try again
   by itself, so fix the database, then restart Home Assistant.
 - An **integration that has failed to set up** (setup error, retrying, migration error,
-  or not loaded), for more than five minutes: **error**, named by its title and
-  integration, with Home Assistant's reason. Disabled integrations don't count. When it
-  recovers, the event says so (level nominal) and it leaves the list.
+  or not loaded), for more than five minutes: **error**, named by its integration and
+  title, with Home Assistant's reason. A retry isn't a recovery: it stays failed, since
+  the first failure, until Home Assistant says it has loaded. Then the event says so
+  (level nominal) and it leaves the list. Disabled integrations don't count.
 
 A discovery you told Home Assistant to **Ignore** is kept as an entry that never loads,
 by design, so it never counts.
@@ -876,8 +886,97 @@ says an integration's state changed or a component loaded (no waiting on a timer
 and the List action their `entity_id` is `homeassistant.recorder`,
 `homeassistant.history` or `integration.<its entry id>`.
 
+#### A failed integration is one problem
+
+When an integration has failed to set up, its watched sensors that are unavailable are
+rolled up into its row. The row says how many ("not connecting, 4 watched sensors
+unavailable: 503 Service Unavailable"), and counts once in Status, Problem and the counts.
+There is one event and one notification for it. Nothing needs setting up: Home Assistant
+knows which integration each entity belongs to.
+
+- **They are still shown.** Tap the row on the card to list them. On the page they are
+  under their own **Rolled up** heading, folded until you open it, and under the
+  integration in Home Assistant itself. Each keeps its own level and how long it has been
+  down.
+- **One at critical is never rolled up**, whether it is set critical when unavailable or
+  has escalated to it. Set that for any sensor you always want to hear of by itself.
+- **A bad reading is never rolled up.** A sensor that is there with a fault has a row of
+  its own.
+- **When the integration recovers**, its sensors have five minutes to come back. Any still
+  unavailable then get rows of their own, and are said.
+- **A group still hears of it.** A card or List action for a group shows the integration
+  when one of the group's sensors is rolled up into it. The event is fired again for each
+  such group, with `group` and with `for_group` true, so the blueprint and the device
+  triggers narrowed to that group work as they did. An automation of your own on every
+  event can leave out those with `for_group`.
+- **Ignore** on the integration lists those sensors by themselves again. It doesn't hide
+  them.
+
+It works only while Home Assistant says the integration failed. An integration that stays
+loaded while its entities go unavailable has a row for each of them.
+
 There is no entity per watched sensor: the summary, the event and the action below tell
 the rest of Home Assistant which ones they are.
+
+### Snooze
+
+Some faults you already know about and can't fix today: a cloud service that is down, a
+sensor waiting for a spare part. While one of them counts, Status stays at its level, so
+another fault at that level or below changes nothing you would notice. Snooze puts such a
+fault out of the way until a time you choose.
+
+A snoozed fault:
+
+- is left out of Status, Problem, the counts, the card's list and the List action's
+  `sensors`.
+- has its notification in the sidebar taken away, and no event is sent for it, so your
+  automations go quiet without being changed. What was said of it is withdrawn
+  (`casa_mia_sensor_watch_withdrawn`, with the reason `snoozed`). It is not said to be
+  back to nominal.
+- is still shown. The card keeps a line for it ("1 snoozed until 30 Nov 09:09: Acme
+  Cloud, error for 9 d"), the page lists it dimmed under **Snoozed**, Casa Mia's Home tile
+  counts it, and Status has `snoozed` and `snoozed_list`. Each says who snoozed it and
+  until when.
+
+**To snooze,** on the page choose **Snooze…** on a row that needs attention, or on a
+failed integration under Home Assistant itself: 4 hours, 1 day, 1 week, 30 days, or until a date
+and time. **Unsnooze** puts it back at once. The card can do the same when **Snooze from
+this card** is on in its options: a tap on a row then offers 4 hours, 1 day, 1 week or 30 days. That
+option is off by default, because a dashboard is often on a tablet that anyone can reach.
+
+A snooze ends by itself:
+
+- **At its time.** The fault is said again, as a change, so a phone hears of it, with how
+  long it has lasted: "still failing, down 16 days: not connecting…". The time is kept
+  across restarts.
+- **When the fault gets worse** by its reading: a warning that becomes an error.
+  Escalation doesn't count, as that is only time passing.
+- **When it becomes another kind of fault:** an integration that was retrying and now
+  needs you to sign in again, or a sensor that was unavailable and is back with a bad
+  reading. A change in the words of the error doesn't count.
+- **When the fault has been gone for 15 minutes.** A cloud that comes back for a minute
+  and fails again stays snoozed. One that fails again next month is a new fault.
+
+Critical can't be snoozed. If a critical fault is one you can live with for a week, its
+level is wrong. A sensor rolled up into its failed integration can't be snoozed by itself
+either: snooze the integration. Any of its sensors that is critical, or back with a bad
+reading, still has a row of its own and is still said.
+
+**From an automation:** `casa_mia_sensor_watch.snooze` takes `entity_id` (as the event and
+the List action give it, so `integration.<its entry id>` for an integration) and either
+`duration` or `until`. `casa_mia_sensor_watch.unsnooze` takes `entity_id`.
+
+```yaml
+actions:
+  - action: casa_mia_sensor_watch.snooze
+    data:
+      entity_id: "{{ trigger.event.data.entity_id }}"
+      duration: { days: 1 }
+```
+
+A button on a notification can snooze the fault it tells you about that way. If you send
+Sensor Watch's events to a notification tool that has a snooze of its own, use this one
+instead: theirs hides the message, and Status here would stay at the fault's level.
 
 ### Device triggers
 
@@ -904,13 +1003,23 @@ when it has them; and `escalated` (true when it's shown a level up for having st
 `real` (the level its reading gives) and `since` (when that level began). `stale` is
 true when the level is for having gone quiet (Stale, under Over time), not for its value;
 `value` is then the last one it sent. The List action's rows carry it too.
+`for_group` is true when it is a failed integration's event again for one group
+([why](#a-failed-integration-is-one-problem)).
+
+When what was said no longer stands and it isn't back to nominal (rolled up into its
+integration, snoozed, ignored, or no longer watched), `casa_mia_sensor_watch_withdrawn` fires
+instead, with `entity_id` and `reason`. It is an event of its own so that no automation
+takes it for a recovery. If yours keeps something for each alert, such as a light left on,
+clear it on this event as well as on nominal.
 
 A sensor found at a level other than nominal, rather than changed to it, fires it too,
 with `initial` true and no `previous`: at Home Assistant's start (held until it has
 started, so automations hear it), and when its watch is edited or Refresh state is
 pressed. A restart clears Home Assistant's own notifications, so this is how a problem
 that was there before it is raised again. The blueprint raises its notification in the
-sidebar again for it, but doesn't send it to a phone.
+sidebar again for it, but doesn't send it to a phone. Sensor Watch remembers what it said
+of a failed integration and an unavailable sensor, and since when, across restarts. One
+that failed during the restart is new, so it isn't `initial` and does reach the phone.
 
 **The easy way: the blueprint.** The integration installs **Notify on Sensor Watch**
 (Settings → Automations & scenes → Blueprints; it's in
@@ -949,9 +1058,9 @@ Other notify actions (email, Telegram) get the plain title and text. The integra
 change it. If you change it, it is left as it is, and its lists of groups and notify
 actions are no longer kept up to date; delete it to have the current one again.
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-blueprint.webp" alt="An automation from the Notify on Sensor Watch blueprint: at this level or worse (Warning chosen), only this group (Flood Lights, from a dropdown), the notify action, a Home Assistant notification and say when it's back switched on, and anything else" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-blueprint.webp" alt="An automation from the Notify on Sensor Watch blueprint: at this level or worse (Warning chosen), only this group (Flood Lights, from a dropdown), the notify action, a Home Assistant notification and say when it's back switched on, and anything else" width="800">
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-notifications.webp" alt="The Home Assistant app's Notifications on a phone: Error: Spa pH, highly acidic (5.8), three minutes ago, and Warning: Download Speed, well below the plan (56.58), 22 minutes ago, each with Dismiss" width="300">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-notifications.webp" alt="The Home Assistant app's Notifications on a phone: Error: Spa pH, highly acidic (5.8), three minutes ago, and Warning: Download Speed, well below the plan (56.58), 22 minutes ago, each with Dismiss" width="300">
 
 *Also as a Home Assistant notification:* one per sensor, its level leading the title, in
 the app's Notifications.
@@ -990,6 +1099,9 @@ actions:
 ```
 
 Add `group: Mains voltage` to ask about one group only (and its own worst level).
+A failed integration's row has `sensors`: those rolled up into it, which aren't rows of
+their own. Those [snoozed](#snooze) are apart, in `snoozed`, each with its `snoozed`
+(`until` and `by`): `sensors` holds only what counts.
 
 Until 2026.11.3 these two actions were `casa_mia.sensor_watch_list` and
 `casa_mia.sensor_watch_refresh`. Those names still work for now, with a warning in the
@@ -997,13 +1109,14 @@ log, and will be removed.
 
 ### The card
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-card-detail.webp" alt="The Sensor Watch card listing an error, a warning and a task, each with its value and how long it has stood" width="380">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-card-detail.webp" alt="The Sensor Watch card listing an error, a warning and a task, each with its value and how long it has stood" width="380">
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/card-picker.webp" alt="Home Assistant's Add to dashboard dialog searched for casa: previews of the Camera Commander, the Over layer and the Sensor Watch card (an example of a bad day: a critical plug voltage, a warm freezer, the softener's salt)" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/card-picker.webp" alt="Home Assistant's Add to dashboard dialog searched for casa: previews of the Camera Commander, the Over layer and the Sensor Watch card (an example of a bad day: a critical plug voltage, a warm freezer, the softener's salt)" width="800">
 
 **Casa Mia Sensor Watch** (in the card picker) lists what isn't nominal, worst first,
 each with its level, message, value (live from the entity) and how long it has stood;
-tap a row for the entity's details. Options: a title, a **group** (chosen from your
+tap a row for the entity's details, or a failed integration's to list the sensors
+rolled up into it. Options: a title, a **group** (chosen from your
 groups, ✕ for every watched sensor), the levels to list, at most how many, what to do
 when all is well (**hide**, the default, or say so), and what **each row shows**: the
 entity's icon, its level, name, message, value and how long, any of them, in the order
@@ -1015,9 +1128,17 @@ it, or none.
 Hidden, it takes its panel with it in a Tablet Layout: put it in a side panel with a
 garnish heading ("Needs looking at") and the panel appears only when something does.
 
+What is [snoozed](#snooze) isn't in the list. The card keeps one line for it at the foot,
+which opens to show each with who snoozed it and until when, and the card doesn't hide
+while there is one. With **Snooze from this card** on, a tap on a row offers to snooze it
+(and **Details** for the entity's dialog), and each snoozed one has **Unsnooze**.
+**Hide snoozed items** leaves that line off the card, which then hides when nothing else
+is listed. The page still lists what is snoozed, and it is back on the card when its
+snooze ends.
+
 ### The gauge card
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.11/docs/screenshots/sensor-watch-gauge.webp" alt="Three Sensor Watch gauges: mains voltage at 241 V, nominal, on an arc of red, amber and green bands; hot water at 46.8 °C, nominal; and a smoke alarm's battery at 4 %, a warning saying Battery flat" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-gauge.webp" alt="Three Sensor Watch gauges: mains voltage at 241 V, nominal, on an arc of red, amber and green bands; hot water at 46.8 °C, nominal; and a smoke alarm's battery at 4 %, a warning saying Battery flat" width="800">
 
 **Casa Mia Sensor Watch gauge** (`custom:casa-mia-sensor-watch-gauge`) shows one watched
 number on a half circle whose coloured parts are its bands. Home Assistant's own gauge
@@ -1049,7 +1170,7 @@ starts and ends**. Left empty, the ends come from the bands (0 and 100 for a per
 ## Part of Casa Mia
 
 Sensor Watch is part of [Casa Mia](https://github.com/gazoodle/casa-mia), where it is written and
-released. This repository is generated from Casa Mia 2026.11.11 (commit `791e4c34cd`) and
+released. This repository is generated from Casa Mia 2026.11.12 (commit `459d2be124`) and
 isn't edited by hand, so a change to Sensor Watch is made in Casa Mia. A problem with it is
 reported here, in this repository's [issues](https://github.com/gazoodle/casa-mia-sensor-watch/issues).
 
