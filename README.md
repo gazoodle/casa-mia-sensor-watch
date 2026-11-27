@@ -10,9 +10,9 @@
 
 Tell it once what normal looks like, for every sensor in the house, and it tells you only when something isn't: what needs doing, or has gone wrong, before the family notices.
 
-> **Maturity: Beta.** Complete and used every day; its features have settled. Please report what breaks in your setup. ([The levels](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/README.md#maturity))
+> **Maturity: Beta.** Complete and used every day; its features have settled. Please report what breaks in your setup. ([The levels](https://github.com/gazoodle/casa-mia/blob/2026.11.14/docs/README.md#maturity))
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-card.webp" alt="A Home Assistant dashboard view named Sensor Watch. On the left the Sensor Watch card lists what needs attention, worst first: an error (Boiler fault, problem reported), a warning (Hall smoke alarm battery, battery flat, 4%) and four tasks (three updates available, and a front door sensor battery to replace at 17%), each with its level as a coloured pill, its message, its value and how long it has stood. On the right four Sensor Watch gauges, each an arc of its watch's coloured bands with a needle: mains voltage 241 V, nominal; hot water 46.8 °C, nominal; the hall smoke alarm at 4%, warning, battery flat; and the landing smoke alarm at 88%, nominal" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-card.webp" alt="A Home Assistant dashboard view named Sensor Watch. On the left the Sensor Watch card lists what needs attention, worst first: an error (Boiler fault, problem reported), a warning (Hall smoke alarm battery, battery flat, 4%) and four tasks (three updates available, and a front door sensor battery to replace at 17%), each with its level as a coloured pill, its message, its value and how long it has stood. On the right four Sensor Watch gauges, each an arc of its watch's coloured bands with a needle: mains voltage 241 V, nominal; hot water 46.8 °C, nominal; the hall smoke alarm at 4%, warning, battery flat; and the landing smoke alarm at 88%, nominal" width="800">
 
 ## What it's for
 
@@ -37,7 +37,7 @@ action always say what's wrong, so you choose what happens next:
   of whoever's home, critical to everyone. The **Notify on Sensor Watch** blueprint does
   this in a few clicks ([The event](#the-event)).
 - **Show it:** a panel of what needs attention on the wall tablets. Pair it with
-  [garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/tablet-layout.md#showing-and-hiding), so the panel's heading
+  [garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.14/docs/tablet-layout.md#showing-and-hiding), so the panel's heading
   disappears with it on a quiet day, rather than a proud *WARNINGS* over nothing.
 - **Look into it:** hand the list to an AI agent (Home Assistant's AI tasks, say) to
   investigate what has gone wrong and why, before you even reach for the laptop.
@@ -46,10 +46,10 @@ action always say what's wrong, so you choose what happens next:
   filter due) added to a Home Assistant to-do list, and ticked off by itself when the
   sensor is nominal again.
 - **Escalate:** a warning nobody has dealt with in a day becomes a text, through
-  [Phone and SMS](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/applets/phone-and-sms.md), which works even when the internet doesn't.
+  [Phone and SMS](https://github.com/gazoodle/casa-mia/blob/2026.11.14/docs/applets/phone-and-sms.md), which works even when the internet doesn't.
 - **Say it with a light:** the hallway lamp glows amber while anything is a warning.
 - **Put it over everything:** a critical comes up on every wall tablet, over whatever
-  it's showing, with the [Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/over-layer.md).
+  it's showing, with the [Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.14/docs/over-layer.md).
 - **Brief the morning:** the voice assistant reads out the day's tasks at breakfast.
 - **Watch the trends:** the counts are measurements, so Home Assistant's own history
   shows which integration falls over most often, and when.
@@ -215,12 +215,12 @@ Sensor Watch tells; the rest of Casa Mia shows, and only when there's something 
   entity says whether anything needs attention, whatever the size of the house.
 - **[The Sensor Watch card](#the-card):** what needs looking at, worst first, with each
   watch's message and its value live; hidden altogether when all is well.
-- **[Tablet Layout](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/tablet-layout.md):** a panel on an edge of the wall tablet's screen
+- **[Tablet Layout](https://github.com/gazoodle/casa-mia/blob/2026.11.14/docs/tablet-layout.md):** a panel on an edge of the wall tablet's screen
   for what needs attention, sized to its cards, and hidden when they are.
-- **[Garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/tablet-layout.md#showing-and-hiding):** the panel's heading is garnish,
+- **[Garnish](https://github.com/gazoodle/casa-mia/blob/2026.11.14/docs/tablet-layout.md#showing-and-hiding):** the panel's heading is garnish,
   so it never holds the panel open on its own. Things go wrong, the panel and its heading
   appear; they're dealt with, and the panel goes, gap and all.
-- **[The Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.12/docs/over-layer.md):** a critical comes up over whatever the tablet is
+- **[The Over layer](https://github.com/gazoodle/casa-mia/blob/2026.11.14/docs/over-layer.md):** a critical comes up over whatever the tablet is
   showing, and goes when it's sorted.
 - **The Home tile** in the Casa Mia panel shows the house's health at a glance: the
   worst level, the counts and the worst culprit.
@@ -360,7 +360,7 @@ three steps to start, with **Set up, step by step…**, **+ New group** and **Sc
 
 ### Set up
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-setup.webp" alt="The set-up's first step, What's in your house: groups to tick for updates, battery levels, leak sensors, an integration's mains voltage (with the library's UK mains voltage profile), problem and smoke sensors, the alarm panel, covers and locks, each with how many it would watch and their levels" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-setup.webp" alt="The set-up's first step, What's in your house: groups to tick for updates, battery levels, leak sensors, an integration's mains voltage (with the library's UK mains voltage profile), problem and smoke sensors, the alarm panel, covers and locks, each with how many it would watch and their levels" width="800">
 
 **Set up…**, beside Scan my house, goes through the first setting up in four steps. Any
 step can be skipped, it can be opened again at any time, and everything it makes is an
@@ -389,7 +389,7 @@ ordinary group, profile or automation that you can change or delete afterwards.
 
 ### Watched sensors
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch.webp" alt="The Sensor Watch page: the watched sensors under one toolbar of search and filter chips, with Needs attention at the top (a boiler fault as an error, a smoke alarm's flat battery as a warning and three tasks), then the rest under a heading per group, each row with its status pill, value, message and levels" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch.webp" alt="The Sensor Watch page: the watched sensors under one toolbar of search and filter chips, with Needs attention at the top (a boiler fault as an error, a smoke alarm's flat battery as a warning and three tasks), then the rest under a heading per group, each row with its status pill, value, message and levels" width="800">
 
 Every watched sensor, its level now (the **status pill** at the start of its row) and its
 value, with a search and filter **chips** along the top so a house with hundreds of them
@@ -433,7 +433,7 @@ hold-off first, so set it to 0 while trying a sensor out.
 
 ### Watch an entity
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-editor.webp" alt="Editing a hot water temperature watch: a month of hourly statistics drawn as a line over the coloured bands, Levels from set to Its own, and the bands as a ladder: Warning above 55, Nominal 41 to 55 °C, Warning below 41, with Move too: Bands above +1 and Everything +1 offered under Nominal after its top edge was raised" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-editor.webp" alt="Editing a hot water temperature watch: a month of hourly statistics drawn as a line over the coloured bands, Levels from set to Its own, and the bands as a ladder: Warning above 55, Nominal 41 to 55 °C, Warning below 41, with Move too: Bands above +1 and Everything +1 offered under Nominal after its top edge was raised" width="800">
 
 Any entity can be watched: a sensor, but also an `input_number` you type a reading into
 (a pool's pH from a test strip), a `number`, a `switch` that should stay on, a `select`.
@@ -624,7 +624,7 @@ The **Profiles** section lists each with how many follow it in its status pill: 
 **N following** to see them in the watched list. Click a row to change its name and
 levels (every follower with it); **Delete** removes it (its followers keep a copy of its levels as their own).
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-library.webp" alt="Profiles from the library, searched for voltage: UK mains voltage (current law) marked as replacing yours with 72 following, the ENA's 2026 proposal, the US and EU, each with its bands, hold-off, what it's for and a Source link; two ticked" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-library.webp" alt="Profiles from the library, searched for voltage: UK mains voltage (current law) marked as replacing yours with 72 following, the ENA's 2026 proposal, the US and EU, each with its bands, hold-off, what it's for and a Source link; two ticked" width="800">
 
 **From the library…** offers profiles that ship with Casa Mia, each with what it's for
 and where its numbers come from:
@@ -776,7 +776,7 @@ with it: the import starts those unticked, and says so.
 
 ### Groups
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-group.webp" alt="Editing the group Battery levels: its name, Levels from set to the built-in ones, by what each is, the chips Domain: sensor and Device class: battery, and the four battery sensors that match" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-group.webp" alt="Editing the group Battery levels: its name, Levels from set to the built-in ones, by what each is, the chips Domain: sensor and Device class: battery, and the four battery sensors that match" width="800">
 
 A group is a saved set of filters (domain, area, label, integration, device, device
 class, kind, a search) and **their levels**: a profile, or **built-in levels, by what
@@ -841,7 +841,7 @@ The **Sensor Watch** device has:
 
 ### The eye in an entity's dialog
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-eye-detail.webp" alt="An entity's dialog in Home Assistant with Sensor Watch's eye at the top, in amber with WARNING beside it" width="600">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-eye-detail.webp" alt="An entity's dialog in Home Assistant with Sensor Watch's eye at the top, in amber with WARNING beside it" width="600">
 
 Open any entity in Home Assistant (the dialog with its name, its history and the settings
 cog) and, for an admin, an eye sits among the icons at the top:
@@ -1058,9 +1058,9 @@ Other notify actions (email, Telegram) get the plain title and text. The integra
 change it. If you change it, it is left as it is, and its lists of groups and notify
 actions are no longer kept up to date; delete it to have the current one again.
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-blueprint.webp" alt="An automation from the Notify on Sensor Watch blueprint: at this level or worse (Warning chosen), only this group (Flood Lights, from a dropdown), the notify action, a Home Assistant notification and say when it's back switched on, and anything else" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-blueprint.webp" alt="An automation from the Notify on Sensor Watch blueprint: at this level or worse (Warning chosen), only this group (Flood Lights, from a dropdown), the notify action, a Home Assistant notification and say when it's back switched on, and anything else" width="800">
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-notifications.webp" alt="The Home Assistant app's Notifications on a phone: Error: Spa pH, highly acidic (5.8), three minutes ago, and Warning: Download Speed, well below the plan (56.58), 22 minutes ago, each with Dismiss" width="300">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-notifications.webp" alt="The Home Assistant app's Notifications on a phone: Error: Spa pH, highly acidic (5.8), three minutes ago, and Warning: Download Speed, well below the plan (56.58), 22 minutes ago, each with Dismiss" width="300">
 
 *Also as a Home Assistant notification:* one per sensor, its level leading the title, in
 the app's Notifications.
@@ -1109,9 +1109,9 @@ log, and will be removed.
 
 ### The card
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-card-detail.webp" alt="The Sensor Watch card listing an error, a warning and a task, each with its value and how long it has stood" width="380">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-card-detail.webp" alt="The Sensor Watch card listing an error, a warning and a task, each with its value and how long it has stood" width="380">
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/card-picker.webp" alt="Home Assistant's Add to dashboard dialog searched for casa: previews of the Camera Commander, the Over layer and the Sensor Watch card (an example of a bad day: a critical plug voltage, a warm freezer, the softener's salt)" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/card-picker.webp" alt="Home Assistant's Add to dashboard dialog searched for casa: previews of the Camera Commander, the Over layer and the Sensor Watch card (an example of a bad day: a critical plug voltage, a warm freezer, the softener's salt)" width="800">
 
 **Casa Mia Sensor Watch** (in the card picker) lists what isn't nominal, worst first,
 each with its level, message, value (live from the entity) and how long it has stood;
@@ -1138,7 +1138,7 @@ snooze ends.
 
 ### The gauge card
 
-<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.12/docs/screenshots/sensor-watch-gauge.webp" alt="Three Sensor Watch gauges: mains voltage at 241 V, nominal, on an arc of red, amber and green bands; hot water at 46.8 °C, nominal; and a smoke alarm's battery at 4 %, a warning saying Battery flat" width="800">
+<img src="https://raw.githubusercontent.com/gazoodle/casa-mia/2026.11.14/docs/screenshots/sensor-watch-gauge.webp" alt="Three Sensor Watch gauges: mains voltage at 241 V, nominal, on an arc of red, amber and green bands; hot water at 46.8 °C, nominal; and a smoke alarm's battery at 4 %, a warning saying Battery flat" width="800">
 
 **Casa Mia Sensor Watch gauge** (`custom:casa-mia-sensor-watch-gauge`) shows one watched
 number on a half circle whose coloured parts are its bands. Home Assistant's own gauge
@@ -1170,7 +1170,7 @@ starts and ends**. Left empty, the ends come from the bands (0 and 100 for a per
 ## Part of Casa Mia
 
 Sensor Watch is part of [Casa Mia](https://github.com/gazoodle/casa-mia), where it is written and
-released. This repository is generated from Casa Mia 2026.11.12 (commit `459d2be124`) and
+released. This repository is generated from Casa Mia 2026.11.14 (commit `42fa8d08ab`) and
 isn't edited by hand, so a change to Sensor Watch is made in Casa Mia. A problem with it is
 reported here, in this repository's [issues](https://github.com/gazoodle/casa-mia-sensor-watch/issues).
 
